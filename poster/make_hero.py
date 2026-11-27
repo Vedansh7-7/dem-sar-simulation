@@ -30,11 +30,14 @@ bias = np.median(compare.db(real_ml)[box] - compare.db(sim_reg)[box])
 box = compare.interior_box(foot, 0.999)
 a = compare.db(real_ml)[box][::-1]          # ascending: flip so north is up
 b = (compare.db(sim_reg) + bias)[box][::-1]
-fig, ax = plt.subplots(1, 2, figsize=(14, 14 * a.shape[0] / (2 * a.shape[1])), gridspec_kw={"wspace": 0.015})
-for x, img, lab in ((ax[0], a, "REAL"), (ax[1], b, "SIMULATED")):
-    x.imshow(img, cmap="gray", vmin=-22, vmax=3, interpolation="lanczos")
-    x.set_axis_off()
-    x.text(0.02, 0.97, lab, transform=x.transAxes, color="white", fontsize=22, fontweight="bold",
-           va="top", family="sans-serif", bbox=dict(facecolor="black", alpha=0.55, edgecolor="none", pad=4))
-fig.savefig(ROOT / "figures" / "pipeline" / "p0_hero.png", dpi=160, bbox_inches="tight", pad_inches=0, facecolor="black")
+for name, labels in (("p0_hero.png", True), ("p0_hero_clean.png", False)):
+    fig, ax = plt.subplots(1, 2, figsize=(14, 14 * a.shape[0] / (2 * a.shape[1])), gridspec_kw={"wspace": 0.015})
+    for x, img, lab in ((ax[0], a, "REAL"), (ax[1], b, "SIMULATED")):
+        x.imshow(img, cmap="gray", vmin=-22, vmax=3, interpolation="lanczos")
+        x.set_axis_off()
+        if labels:
+            x.text(0.015, 0.975, lab, transform=x.transAxes, color="white", fontsize=12, fontweight="bold",
+                   va="top", family="sans-serif", bbox=dict(facecolor="black", alpha=0.6, edgecolor="none", pad=3))
+    fig.savefig(ROOT / "figures" / "pipeline" / name, dpi=160, bbox_inches="tight", pad_inches=0, facecolor="black")
+    plt.close(fig)
 print("hero written", a.shape)

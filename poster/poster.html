@@ -119,14 +119,14 @@
       <p class="dropcap">A radar satellite does not take pictures — it sorts echoes by distance. Over mountains, that turns slopes into bright lines, folds peaks over valleys and hides whole hillsides in shadow. This study rebuilds a SAR from first principles, feeds it the Copernicus DEM and the real Sentinel-1 orbit, and asks: <i>how much of a real Alpine radar image can terrain alone explain?</i></p>
     </div>
     <div class="hero">
-      <img src="../figures/pipeline/p0_hero.png" alt="Real versus simulated Sentinel-1 image of Innsbruck">
+      <img src="../figures/pipeline/p0_hero_clean.png" alt="Real versus simulated Sentinel-1 image of Innsbruck">
       <div class="cap"><b>REAL (LEFT) · SIMULATED FROM DEM + ORBIT (RIGHT)</b><br>Sentinel-1 σ⁰ VV over Innsbruck, Austria (radar geometry, north up)</div>
     </div>
     <aside class="glance">
       <h3>Study at a glance</h3>
       <div class="stat"><div class="ico">r</div><div><div class="k">Correlation (asc / desc)</div><div class="v">0.71 / 0.72</div><div class="s">5×5 multilook, dB, 4.9 M pixels</div></div></div>
       <div class="stat"><div class="ico">⌖</div><div><div class="k">Geocoding vs ESA</div><div class="v">0.016 px</div><div class="s">max error over 210 grid points</div></div></div>
-      <div class="stat"><div class="ico">↔</div><div><div class="k">Residual offset</div><div class="v">≤ 2 px</div><div class="s">≈ one DEM cell after co-registration</div></div></div>
+      <div class="stat"><div class="ico">↔</div><div><div class="k">Image ↔ simulation offset</div><div class="v">0.3–3.5 px</div><div class="s">≤ 35 m: the products' own geolocation</div></div></div>
       <div class="stat"><div class="ico">θ</div><div><div class="k">Fitted backscatter law</div><div class="v">cos<sup>1.98</sup>θ</div><div class="s">fit on ascending, holds on descending</div></div></div>
       <div class="stat"><div class="ico">▲</div><div><div class="k">Terrain</div><div class="v">552–2789 m</div><div class="s">Copernicus GLO-30, 23 × 22 km</div></div></div>
       <div class="stat"><div class="ico">€</div><div><div class="k">Data cost</div><div class="v">0</div><div class="s">all open data, no login</div></div></div>
@@ -208,6 +208,8 @@
         <p style="margin-top:2mm">Geometry alone (constant σ⁰) already explains much of the image; the data-fitted law is cos<sup>1.98</sup>θ ≈ Lambert and transfers unchanged to the descending pass (r = 0.72). Real σ⁰ inside predicted shadow has a median of -21.0 dB, inside predicted layover -3.5 dB.</p>
         <figure><img src="../figures/pipeline/p6_landcover.png" alt="land cover">
           <figcaption><b>Figure 6:</b> Residual (real − simulated) per WorldCover class. Bare / sparse is +3.2 dB brighter and water -3.8 dB darker than the DEM predicts.</figcaption></figure>
+        <figure><img src="../figures/pipeline/p7_residual_maps.png" alt="residual maps">
+          <figcaption><b>Figure 7:</b> Real − simulated σ⁰ in map geometry: red = brighter than predicted (city, rock), blue = darker (river, fields).</figcaption></figure>
       </div>
     </div>
   </div>

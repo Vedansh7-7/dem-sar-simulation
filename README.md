@@ -18,8 +18,10 @@ real satellite orbit, then compare it pixel by pixel with an actual Sentinel-1 i
 | `sarsim/data.py` | cached data access (DEM, Sentinel-1 window, WorldCover) |
 | `run_all.py` | the full experiment pipeline (E1–E5) → `results/`, `figures/pipeline/` |
 | `tests/` | unit tests (geometry, models, geocoding vs ESA's geolocation grid) |
-| `report/` | LaTeX report |
-| `poster/` | newspaper-style research poster |
+| `report/` | LaTeX report (`main.pdf`, 23 pages) |
+| `poster/a3/` | A3 academic poster in LaTeX/TikZ, with data-flow and design-evolution diagrams |
+| `poster/` | A1 newspaper-style poster (HTML → PDF/PNG) |
+| `poster/canva/` | Canva import package: poster PDF, all figures, all poster text |
 
 ## Run it
 
