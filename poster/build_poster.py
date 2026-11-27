@@ -16,8 +16,8 @@ M = json.loads((ROOT / "report" / "generated" / "macros.json").read_text())
 CHROME = next(p for p in (r"C:\Program Files\Google\Chrome\Application\chrome.exe",
                           r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe") if Path(p).exists())
 
-authors = sys.argv[1] if len(sys.argv) > 1 else "[Author name]"
-affiliation = sys.argv[2] if len(sys.argv) > 2 else "[Affiliation]"
+authors = sys.argv[1] if len(sys.argv) > 1 else "Vedansh Shrivastava (230003086)"
+affiliation = sys.argv[2] if len(sys.argv) > 2 else "Supervisor: Dr. Unmesh Khati, IIT Indore"
 
 # model table rows (best value per column in bold via class)
 rows = R["E1_models_ascending"]

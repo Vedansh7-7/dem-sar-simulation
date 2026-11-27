@@ -1,0 +1,62 @@
+% Data flow of the simulator (shared style with the A3 poster)
+\begin{tikzpicture}[yscale=0.92,
+  font=\fontsize{7.4}{8.6}\selectfont, >={Stealth[length=1.9mm]},
+  base/.style={draw, rounded corners=1.1mm, align=center, minimum height=7.6mm, inner sep=1mm, line width=0.6pt},
+  inp/.style={base, fill=inC, draw=inD, text width=19mm},
+  pro/.style={base, fill=prC, draw=prD, text width=27mm},
+  rea/.style={base, fill=reC, draw=reD, text width=27mm},
+  prod/.style={base, fill=ouC, draw=ouD, text width=27mm, font=\fontsize{7.4}{8.6}\selectfont\bfseries},
+  ar/.style={->, line width=0.6pt, draw=black!70},
+  fb/.style={->, line width=0.75pt, draw=ouD, dashed}]
+\def\xA{0mm} \def\xB{47mm} \def\xC{94mm}
+\node[inp, text width=18mm] (dem) at (\xA,0) {Copernicus\\GLO-30 DEM};
+\node[inp, text width=18mm] (geo) at (23mm,0) {EGM2008\\geoid};
+\node[inp, text width=24mm] (ann) at (\xB+1mm,0) {S1 annotation\\{\fontsize{6.4}{7.2}\selectfont orbit, timing, SRGR, LUT}};
+\node[inp, text width=19mm] (grd) at (\xC-6mm,0) {S1 GRD image\\(DN, VV)};
+\node[inp, text width=16mm] (wc) at (\xC+21mm,0) {ESA\\WorldCover};
+\node[pro] (hgt)  at (\xA,-11mm) {ellipsoidal heights\\$h=H+N$};
+\node[pro] (orb)  at (\xB,-11mm) {orbit polynomial fit\\{\fontsize{6.4}{7.2}\selectfont velocity error 0.1\,mm/s}};
+\node[rea] (cal)  at (\xC,-11mm) {calibration\\$\sigma^0=\mathrm{DN}^2/A_\sigma^2$};
+\node[pro] (ovs)  at (\xA,-21.5mm) {3$\times$ oversampling\\{\fontsize{6.4}{7.2}\selectfont about 10\,m facets}};
+\node[pro] (zd)   at (\xB,-21.5mm) {zero-Doppler solve\\$(\mathbf X-\mathbf S)\cdot\mathbf V=0$};
+\node[rea] (rml)  at (\xC,-21.5mm) {real $\sigma^0$\\5$\times$5 multilook};
+\node[pro] (ecef) at (\xA,-32mm) {ECEF facets\\normal $\hat{\mathbf n}$, area $A$};
+\node[pro] (srgr) at (\xB,-32mm) {slant range to pixel\\{\fontsize{6.4}{7.2}\selectfont piece-wise SRGR}};
+\node[pro] (inc)  at (\xA,-43mm) {local incidence $\theta_{loc}$\\shadow \& layover};
+\node[pro] (spl)  at (\xB,-43mm) {$\sigma^0(\theta_{loc})\,A$ splatted\\over pixel area};
+\node[pro] (reg)  at (\xC,-43mm) {sub-pixel\\co-registration};
+\node[pro] (fit)  at (\xA,-54mm) {fit $\sigma^0=k\cos^n\theta_{loc}$\\{\fontsize{6.4}{7.2}\selectfont to the real image}};
+\node[prod] (sim) at (\xB,-54mm) {SIMULATED $\sigma^0$\\+ layover/shadow masks};
+\node[prod] (met) at (\xC,-54mm) {metrics\\$r$, $\rho$, SSIM, RMSE};
+\node[pro]  (map) at (\xB,-65mm) {back-geocode to map,\\per-class residuals};
+\node[prod] (res) at (\xC,-65mm) {residual maps,\\land-cover bias};
+\draw[ar] (dem) -- (hgt);
+\draw[ar] (geo.south) |- ($(hgt.north east)+(-3mm,1.8mm)$) -- ++(0,-1.8mm);
+\draw[ar] (hgt) -- (ovs);
+\draw[ar] (ovs) -- (ecef);
+\draw[ar] (ann) -- (orb);
+\draw[ar] (orb) -- (zd);
+\draw[ar] (zd) -- (srgr);
+\draw[ar] (ecef.east) -- ++(3mm,0) |- (zd.west);
+\draw[ar] (ecef) -- (inc);
+\draw[ar] (srgr) -- (spl);
+\draw[ar] (inc) -- (spl);
+\draw[ar] (spl) -- (sim);
+\draw[ar] (grd.south) -- ++(0,-2mm) -| (cal.north);
+\draw[ar] (ann.east) -- ++(2mm,0) |- ($(cal.west)+(0,1.5mm)$);
+\draw[ar] (cal) -- (rml);
+\draw[ar] (rml) -- (reg);
+\draw[ar] (sim.north east) -- (reg.south west);
+\draw[ar] (reg) -- (met);
+\draw[ar] (sim) -- (map);
+\draw[ar] (map) -- (res);
+\draw[ar] (wc.south) |- (res.east);
+\draw[fb] (map.west) -| (fit.south);
+\draw[fb] (fit.north) -- (inc.south);
+\node[font=\fontsize{7}{8}\selectfont\bfseries\color{black!50}, anchor=south west] at ($(dem.north west)+(0,0.5mm)$) {INPUTS};
+\begin{scope}[on background layer]
+  \node[fill=black!3.5, rounded corners=2mm, fit=(hgt)(ovs)(ecef), inner sep=1.3mm] {};
+  \node[fill=black!3.5, rounded corners=2mm, fit=(orb)(zd)(srgr), inner sep=1.3mm] {};
+  \node[fill=reC!45, rounded corners=2mm, fit=(cal)(rml), inner sep=1.3mm] {};
+\end{scope}
+\end{tikzpicture}
