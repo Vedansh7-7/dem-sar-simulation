@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>The Radar Gazette — DEM-based SAR Simulation</title>
+<title>The Radar Gazette: DEM-based SAR Simulation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Oswald:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -105,28 +105,28 @@
 <body>
 <div class="page">
 
-  <div class="topline"><span>Research Edition · Remote Sensing</span><span>{{date_long}}</span><span>Price: one DEM &amp; two orbits</span></div>
+  <div class="topline"><span>Research Edition | Remote Sensing</span><span>{{date_long}}</span><span>Price: one DEM &amp; two orbits</span></div>
   <div class="masthead"><h1>The Radar Gazette</h1></div>
-  <div class="tagline"><span>Vol. I · No. 1</span><span class="mid">All the echoes that fit to print</span><span>Innsbruck edition</span></div>
+  <div class="tagline"><span>Vol. I, No. 1</span><span class="mid">All the echoes that fit to print</span><span>Innsbruck edition</span></div>
   <nav><span class="on">Introduction</span><span>Study Area &amp; Data</span><span>Methodology</span><span>Results</span><span>Conclusions</span></nav>
 
   <!-- ===================== LEAD STORY ===================== -->
   <section class="lead">
     <div>
       <h2 class="headline">Mountains simulated from space match real radar</h2>
-      <p class="deck">DEM-based SAR simulation predicts Sentinel-1 images of the Alps — layover, shadow and all — with a correlation of r&nbsp;=&nbsp;{{rAsc}}.</p>
-      <div class="byline">By {{authors}} · {{affiliation}}</div>
-      <p class="dropcap">A radar satellite does not take pictures — it sorts echoes by distance. Over mountains, that turns slopes into bright lines, folds peaks over valleys and hides whole hillsides in shadow. This study rebuilds a SAR from first principles, feeds it the Copernicus DEM and the real Sentinel-1 orbit, and asks: <i>how much of a real Alpine radar image can terrain alone explain?</i></p>
+      <p class="deck">DEM-based SAR simulation predicts Sentinel-1 images of the Alps, layover, shadow and all, with a correlation of r&nbsp;=&nbsp;{{rAsc}}.</p>
+      <div class="byline">By {{authors}} | {{affiliation}}</div>
+      <p class="dropcap">A radar satellite does not take pictures: it sorts echoes by distance. Over mountains, that turns slopes into bright lines, folds peaks over valleys and hides whole hillsides in shadow. This study rebuilds a SAR from first principles, feeds it the Copernicus DEM and the real Sentinel-1 orbit, and asks: <i>how much of a real Alpine radar image can terrain alone explain?</i></p>
     </div>
     <div class="hero">
       <img src="{{fig}}/pipeline/p0_hero_clean.png" alt="Real versus simulated Sentinel-1 image of Innsbruck">
-      <div class="cap"><b>REAL (LEFT) · SIMULATED FROM DEM + ORBIT (RIGHT)</b><br>Sentinel-1 σ⁰ VV over Innsbruck, Austria (radar geometry, north up)</div>
+      <div class="cap"><b>REAL (LEFT) | SIMULATED FROM DEM AND ORBIT (RIGHT)</b><br>Sentinel-1 σ⁰ VV over Innsbruck, Austria (radar geometry, north up)</div>
     </div>
     <aside class="glance">
       <h3>Study at a glance</h3>
       <div class="stat"><div class="ico">r</div><div><div class="k">Correlation (asc / desc)</div><div class="v">{{rAsc}} / {{rDesc}}</div><div class="s">5×5 multilook, dB, {{nPix}} M pixels</div></div></div>
       <div class="stat"><div class="ico">⌖</div><div><div class="k">Geocoding vs ESA</div><div class="v">{{geoDpixMax}} px</div><div class="s">max error over {{nGrid}} grid points</div></div></div>
-      <div class="stat"><div class="ico">↔</div><div><div class="k">Image ↔ simulation offset</div><div class="v">0.3–3.5 px</div><div class="s">≤ 35 m: the products' own geolocation</div></div></div>
+      <div class="stat"><div class="ico">Δ</div><div><div class="k">Image vs simulation offset</div><div class="v">0.3–3.5 px</div><div class="s">≤ 35 m: the products' own geolocation</div></div></div>
       <div class="stat"><div class="ico">θ</div><div><div class="k">Fitted backscatter law</div><div class="v">cos<sup>{{nFit}}</sup>θ</div><div class="s">fit on ascending, holds on descending</div></div></div>
       <div class="stat"><div class="ico">▲</div><div><div class="k">Terrain</div><div class="v">552–2789 m</div><div class="s">Copernicus GLO-30, 23 × 22 km</div></div></div>
       <div class="stat"><div class="ico">€</div><div><div class="k">Data cost</div><div class="v">0</div><div class="s">all open data, no login</div></div></div>
@@ -141,9 +141,9 @@
         <h2><span class="n">1.</span> Introduction</h2>
         <p class="kicker">Why mountains confuse a radar</p>
         <ul>
-          <li>A side-looking SAR measures <b>slant range</b>: terrain height moves every point towards the sensor by <i>h</i>·cot θ.</li>
+          <li>A side-looking SAR measures <b>slant range</b>: terrain height moves every point towards the sensor by <i>h</i> cot θ.</li>
           <li>Slopes facing the radar are <b>foreshortened</b> or fall into <b>layover</b>; steep slopes facing away vanish into <b>shadow</b>.</li>
-          <li>Simulating the image from a DEM is the standard way to explain, mask and correct these effects — this work builds such a simulator from scratch and tests it against reality.</li>
+          <li>Simulating the image from a DEM is the standard way to explain, mask and correct these effects; this work builds such a simulator from scratch and tests it against reality.</li>
         </ul>
       </div>
       <div class="sec">
@@ -154,9 +154,9 @@
         <div class="box">
           <h4>Scene report</h4>
           <table>
-            <tr><td>DEM</td><td>Copernicus GLO-30 (EGM2008 → WGS84, N = {{geoidN}} m)</td></tr>
-            <tr><td>Ascending</td><td>{{platAsc}} IW GRDH VV · {{dateAsc}} · θ {{incAsc}}°</td></tr>
-            <tr><td>Descending</td><td>{{platDesc}} IW GRDH VV · {{dateDesc}} · θ {{incDesc}}°</td></tr>
+            <tr><td>DEM</td><td>Copernicus GLO-30 (EGM2008 heights converted to WGS84, N = {{geoidN}} m)</td></tr>
+            <tr><td>Ascending</td><td>{{platAsc}} IW GRDH VV, {{dateAsc}}, θ {{incAsc}}°</td></tr>
+            <tr><td>Descending</td><td>{{platDesc}} IW GRDH VV, {{dateDesc}}, θ {{incDesc}}°</td></tr>
             <tr><td>Land cover</td><td>ESA WorldCover 2021, 10 m</td></tr>
             <tr><td>Access</td><td>Microsoft Planetary Computer (anonymous)</td></tr>
           </table>
@@ -164,8 +164,8 @@
       </div>
       <div class="sec">
         <h2><span class="n">3.</span> Methodology</h2>
-        <p class="kicker">Part I — from a point to a mountain</p>
-        <p>A raw-signal simulator follows the radar physics step by step: chirp → echo → range compression → synthetic aperture → focusing by back-projection. Measured resolutions (5.5 m azimuth, 4.7 m ground range) match theory.</p>
+        <p class="kicker">Part I: from a point to a mountain</p>
+        <p>A raw-signal simulator follows the radar physics step by step: chirp, echo, range compression, synthetic aperture and focusing by back-projection. Measured resolutions (5.5 m azimuth, 4.7 m ground range) match theory.</p>
         <figure><img src="{{fig}}/notebook/03b_signal_chain.png" alt="signal chain">
           <figcaption><b>Figure 2:</b> Three point targets: range &amp; Doppler history, raw data, range-compressed data and the focused image.</figcaption></figure>
       </div>
@@ -174,19 +174,19 @@
     <!-- column 2 -->
     <div class="col">
       <div class="sec" style="border-top-width:1px">
-        <p>Distributed scatterers create speckle; topography re-weights the energy. A fast <b>image-domain simulator</b> reproduces the raw-signal result on a real DEM patch with <b>r = 0.97</b> — in milliseconds instead of minutes.</p>
+        <p>Distributed scatterers create speckle; topography re-weights the energy. A fast <b>image-domain simulator</b> reproduces the raw-signal result on a real DEM patch with <b>r = 0.97</b>, in milliseconds instead of minutes.</p>
         <figure><img src="{{fig}}/notebook/07_geometric_distortions_profile.png" alt="distortions">
           <figcaption><b>Figure 3:</b> Foreshortening, layover (the slant-range fold) and shadow on a synthetic mountain.</figcaption></figure>
-        <p class="kicker">Part II — real orbit, real terrain</p>
+        <p class="kicker">Part II: real orbit, real terrain</p>
         <ul>
           <li><b>Geometry:</b> 7 M DEM facets (3× oversampled) are range-Doppler geocoded with the annotated orbit (zero-Doppler Newton solve) and slant-to-ground-range polynomials.</li>
-          <li><b>Distortions:</b> facets sorted along each azimuth line → shadow (look-angle test) and layover (slant-range test).</li>
-          <li><b>Radiometry:</b> σ⁰(θ<sub>loc</sub>)·A<sub>facet</sub> splatted into GRD pixels ÷ ellipsoid pixel area → directly comparable with ESA σ⁰.</li>
+          <li><b>Distortions:</b> facets sorted along each azimuth line give shadow (look-angle test) and layover (slant-range test).</li>
+          <li><b>Radiometry:</b> σ⁰(θ<sub>loc</sub>) A<sub>facet</sub> splatted into GRD pixels and divided by the ellipsoid pixel area, directly comparable with ESA σ⁰.</li>
           <li><b>Comparison:</b> 5×5 multilook, sub-pixel co-registration, Pearson r, SSIM, RMSE; WorldCover breakdown.</li>
         </ul>
-        <div class="pull">“Polynomials are piece-wise: blending them cost us 3 pixels.”<small>ESA's SRGR sets, applied valid-from → 0.016 px</small></div>
+        <div class="pull">“Polynomials are piece-wise: blending them cost us 3 pixels.”<small>ESA's SRGR sets applied valid-from: 0.016 px</small></div>
         <figure><img src="{{fig}}/notebook/08b_radiometric_chain.png" alt="radiometry">
-          <figcaption><b>Figure 4:</b> Radiometric chain — local incidence, σ⁰ map, illuminated area, image, speckle, multilook.</figcaption></figure>
+          <figcaption><b>Figure 4:</b> Radiometric chain: local incidence, σ⁰ map, illuminated area, image, speckle, multilook.</figcaption></figure>
       </div>
     </div>
 
@@ -201,7 +201,7 @@
           <tr><th>Backscatter model</th><th class="n">r</th><th class="n">SSIM</th><th class="n">RMSE dB</th></tr>
           {{model_rows}}
         </table>
-        <p style="margin-top:2mm">Geometry alone (constant σ⁰) already explains much of the image; the data-fitted law is cos<sup>{{nFit}}</sup>θ ≈ Lambert and transfers unchanged to the descending pass (r = {{rDesc}}). {{class_sentence}}</p>
+        <p style="margin-top:2mm">Geometry alone (constant σ⁰) already explains much of the image; the data-fitted law is cos<sup>{{nFit}}</sup>θ, close to Lambert, and transfers unchanged to the descending pass (r = {{rDesc}}). {{class_sentence}}</p>
         <figure><img src="{{fig}}/pipeline/p6_landcover.png" alt="land cover">
           <figcaption><b>Figure 6:</b> Residual (real − simulated) per WorldCover class. {{lc_sentence}}</figcaption></figure>
         <figure><img src="{{fig}}/pipeline/p7_residual_maps.png" alt="residual maps">
@@ -217,7 +217,7 @@
       <ul>
         <li>Range-Doppler geocoding with the annotated orbit reproduces ESA's grid to <b>{{geoDpixMax}} px</b>; simulated layover &amp; shadow sit where the real image is brightest and darkest.</li>
         <li>DEM-only simulation predicts Sentinel-1 σ⁰ of Alpine terrain with <b>r = {{rAsc}} / {{rDesc}}</b> (asc / desc); the fitted cos<sup>{{nFit}}</sup> law transfers between geometries.</li>
-        <li>The remaining disagreement is <b>land cover</b> — buildings, water and vegetation structure that no DEM contains. Next: class-specific backscatter, double bounce, terrain flattening.</li>
+        <li>The remaining disagreement is <b>land cover</b>: buildings, water and vegetation structure that no DEM contains. Next: class-specific backscatter, double bounce, terrain flattening.</li>
       </ul>
     </div>
     <div class="refs">
@@ -230,10 +230,10 @@
     </div>
     <div>
       <h2>Acknowledgements</h2>
-      <div class="qr"><img src="{{qr}}" alt="QR code to the repository"><div style="font-size:12.5pt;line-height:1.25">Copernicus DEM © ESA/Airbus · Sentinel-1 &amp; WorldCover © ESA · data via Microsoft Planetary Computer.<br><span class="mono">{{repoShort}}</span></div></div>
+      <div class="qr"><img src="{{qr}}" alt="QR code to the repository"><div style="font-size:12.5pt;line-height:1.25">Copernicus DEM © ESA/Airbus; Sentinel-1 &amp; WorldCover © ESA; data via Microsoft Planetary Computer.<br><span class="mono">{{repoShort}}</span></div></div>
     </div>
   </div>
-  <div class="footer"><span>“All models are wrong — some echo back.”</span><span>◉</span><span>Stay coherent · Mind the layover</span></div>
+  <div class="footer"><span>“All models are wrong, some echo back.”</span><span>◉</span><span>Stay coherent, mind the layover</span></div>
 </div>
 </body>
 </html>

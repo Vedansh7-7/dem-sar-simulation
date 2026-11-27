@@ -1,0 +1,33 @@
+% Design evolution of the simulator (shared style with the A3 poster)
+\begin{tikzpicture}[font=\fontsize{7.3}{8.4}\selectfont, >={Stealth[length=1.7mm]},
+  st/.style={draw=prD, fill=prC, rounded corners=1mm, line width=0.6pt, text width=38mm, minimum height=6mm, align=left, inner sep=1mm},
+  te/.style={draw=inD, fill=inC, rounded corners=1mm, line width=0.6pt, text width=27mm, minimum height=6mm, align=left, inner sep=1mm},
+  okb/.style={draw=okC, fill=okC!7, rounded corners=1mm, line width=0.6pt, text width=60mm, minimum height=6mm, align=left, inner sep=1mm},
+  nob/.style={draw=noC, fill=noC!6, rounded corners=1mm, line width=0.6pt, text width=60mm, minimum height=6mm, align=left, inner sep=1mm},
+  ar/.style={->, line width=0.55pt, draw=black!60}]
+\def\dy{7.6mm}
+\foreach \i/\stage/\test/\res/\kind in {
+  1/{\textbf{1}\ \ Point target, one pulse}/{$-3$\,dB width vs theory}/{\ok\ 2.66\,m measured = $0.886\,c/2B$}/okb,
+  2/{\textbf{2}\ \ Moving satellite, focusing}/{resolution, side-lobes}/{\ok\ $\rho_{az}$ 5.45\,m, $\rho_g$ 4.65\,m, PSLR $-13$\,dB}/okb,
+  3/{\textbf{3}\ \ Speckle \& sine surface}/{image-domain vs raw}/{\ok\ exponential speckle; profiles agree, $r=0.90$}/okb,
+  4/{\textbf{4}\ \ Real DEM patch}/{speed \& agreement}/{\ok\ 100\,s vs 30\,ms, $r=0.97$; chosen: \textbf{image-domain}}/okb,
+  5/{\textbf{5}\ \ Real orbit, zero-Doppler}/{vs ESA's own grid}/{\no\ 3.3\,px; fix: \textbf{piece-wise SRGR}, 0.016\,px \ok}/nob,
+  6/{\textbf{6}\ \ Facets into GRD pixels}/{empty pixels}/{\no\ 46\,\% empty; fix: \textbf{3$\times$ DEM oversampling}, 0.01\,\% \ok}/nob,
+  7/{\textbf{7}\ \ Terrain heights}/{geoid off vs on}/{\no\ 58\,m shift; fix: \textbf{EGM2008 geoid correction} \ok}/nob,
+  8/{\textbf{8}\ \ Full scene, 7\,M facets}/{memory}/{\no\ out of memory; fix: \textbf{block-wise float32} \ok}/nob,
+  9/{\textbf{9}\ \ Backscatter law}/{5 laws; asc. vs desc.}/{\ok\ $k\cos^{\nFit}\theta_{loc}$, $r$ = \rAsc\,/\,\rDesc\ \textbf{(cross-validated)}}/okb}{
+  \node[st] (s\i) at (0,-\i*\dy) {\stage};
+  \node[te, right=2.4mm of s\i] (t\i) {\test};
+  \node[\kind, right=2.4mm of t\i] (r\i) {\res};
+  \draw[ar] (s\i) -- (t\i);
+  \draw[ar] (t\i) -- (r\i);
+}
+\foreach \i [count=\j from 2] in {1,...,8} { \draw[ar] (s\i) -- (s\j); }
+\node[draw=ouD, fill=ouC, line width=0.9pt, rounded corners=1.2mm, align=center, inner sep=1.4mm,
+      anchor=north west, font=\fontsize{7.5}{8.8}\selectfont, text width=137mm] (fin) at ($(s9.south west)+(0,-2.8mm)$)
+  {\textbf{FINAL DESIGN}\quad image-domain simulator; real orbit and zero-Doppler; piece-wise SRGR; geoid-corrected, 3$\times$ oversampled GLO-30; block-wise float32; fitted $\cos^{n}$ law; co-registration and metrics};
+\draw[ar] (s9) -- (s9|-fin.north);
+\node[font=\fontsize{7}{8}\selectfont\bfseries\color{black!50}, anchor=south west] at ($(s1.north west)+(0,0.4mm)$) {ITERATION};
+\node[font=\fontsize{7}{8}\selectfont\bfseries\color{black!50}, anchor=south west] at ($(t1.north west)+(0,0.4mm)$) {TEST};
+\node[font=\fontsize{7}{8}\selectfont\bfseries\color{black!50}, anchor=south west] at ($(r1.north west)+(0,0.4mm)$) {OUTCOME AND DESIGN DECISION};
+\end{tikzpicture}
