@@ -1,0 +1,72 @@
+\chapter{Literature Review}
+\label{ch:literature}
+This chapter summarises the principles of SAR image formation and the effects of terrain on SAR images that the
+simulator has to reproduce, and reviews the existing approaches to SAR simulation and DEM-based geocoding.
+
+\section{Range Resolution and Pulse Compression}
+A SAR transmits a linear frequency-modulated pulse (chirp) $s(t)=\exp(j\pi K_r t^2)$ for $|t|<T_p/2$, of bandwidth
+$B=K_rT_p$. A scatterer at slant range $R$ returns a copy of the pulse delayed by $2R/c$ and phase-shifted by
+$-4\pi R/\lambda$. Correlating the echo with the transmitted replica (matched filtering) compresses the long pulse into a
+sinc-shaped peak whose $-3$\,dB width defines the slant-range resolution
+\begin{equation}
+\rho_r = 0.886\,\frac{c}{2B}, \qquad \rho_g = \frac{\rho_r}{\sin\theta},
+\end{equation}
+where $\rho_g$ is the corresponding ground-range resolution at incidence angle $\theta$ \cite{cumming2005,curlander1991}.
+The resolution therefore depends on the bandwidth and not on the pulse length, which can be chosen long enough to
+deliver the required energy.
+
+\section{Azimuth Resolution and the Synthetic Aperture}
+Along the flight track (azimuth) a single pulse cannot separate targets, since the real antenna beam is several
+kilometres wide on the ground. As the platform moves with speed $v$, the range to a target follows the hyperbola
+$R(\eta)=\sqrt{R_0^2+v^2\eta^2}$, which produces a phase history $\exp(-j4\pi R(\eta)/\lambda)$ that is a chirp in
+Doppler with a rate of $2v^2/(\lambda R_0)$. Matched filtering in azimuth over the synthetic aperture
+$L_{sa}=\lambda R_0/L$, where $L$ is the antenna length, yields an azimuth resolution of about $L/2$, independent of
+range \cite{moreira2013,curlander1991}. Several focusing algorithms exist; time-domain back-projection, in which the
+range-compressed samples at the exact range of every image point are phase-corrected and summed over all pulses, is
+the most direct and is exact for arbitrary scene geometry \cite{cumming2005}.
+
+\section{Speckle}
+A natural surface contains many elementary scatterers per resolution cell. Their coherent sum has a random phase, so
+that the single-look intensity of a homogeneous surface is exponentially distributed with a standard deviation equal to
+its mean \cite{goodman1976}. Averaging $L$ independent looks (multilooking) produces a Gamma distribution with a
+relative variance of $1/L$, at the cost of spatial resolution \cite{oliver1998}. Speckle is therefore a property of the
+measurement rather than of the surface, and comparisons between simulated and real images are made on multilooked
+data.
+
+\section{Geometric Distortions in Mountainous Terrain}
+Because a SAR orders echoes by slant range, terrain height $h$ shifts a point towards the sensor by $h\cot\theta$ in
+ground range, and the slope of the terrain controls how much ground falls into each range cell
+\cite{leberl1990}. Three regimes follow (Fig.~\ref{fig:intro}). Slopes facing the radar with a slope smaller than the
+look angle are compressed into fewer range cells and appear bright (foreshortening). If the slope exceeds the look
+angle, the top of the slope is closer to the radar than its foot, so that the slope is imaged reversed and mixed with
+the terrain in front of it (layover). Slopes facing away from the radar with a slope larger than the complement of the
+look angle, together with all terrain hidden behind them, return no echo (radar shadow). Kropatsch and Strobl
+\cite{kropatsch1990} showed how layover and shadow maps can be derived from a DEM, and Gelautz et al.
+\cite{gelautz1998} analysed simulated and real SAR images of Alpine terrain, where these effects are pervasive.
+
+\section{Radiometry and Backscatter Models}
+The radar cross-section per unit ground area, $\sigma^0$, depends on the surface material, its roughness and moisture,
+and on the local incidence angle $\theta_{loc}$ between the radar beam and the surface normal
+\cite{ulaby1982,ulaby1989}. Simulators commonly reduce this dependence to a simple law of $\theta_{loc}$, such as the
+cosine law, Lambert's law ($\cos^2\theta_{loc}$) or Muhleman's law \cite{muhleman1964}, whose validity for real
+terrain remains an empirical question. In addition, the area of terrain that maps into one image pixel varies with the
+topography. ESA calibrates GRD products to $\sigma^0$ referred to the ellipsoid pixel area, so that the brightness of a
+pixel contains both effects; separating them is the purpose of radiometric slope correction and terrain flattening
+\cite{ulander1996,small2011,frey2013}.
+
+\section{SAR Simulators and DEM-Based Geocoding}
+SAR simulators span a wide range of complexity. Raw-signal simulators generate the echo of every pulse and are used to
+test focusing algorithms and system designs \cite{franceschetti1992}. Ray tracers model multiple bounces in urban
+scenes and are used to interpret high-resolution images of buildings \cite{balz2009,auer2010}. Image-domain
+simulators, finally, project each DEM facet directly into the image and form the basis of operational geocoding and
+terrain correction \cite{schreier1993,meier1993,small2011,low2007}; they are also used for DEM-assisted co-registration
+in interferometry \cite{nitti2011,bamler1998}. The absolute geolocation accuracy of Sentinel-1 products, which bounds
+how well any simulation can be aligned with them without co-registration, has been verified with corner reflectors and
+reaches a few metres when atmospheric delay and solid-earth tides are corrected \cite{schubert2015,gisinger2021}.
+
+\section{Research Gap}
+Existing studies either use DEM-based simulation as an internal step of geocoding and terrain-correction chains, or
+analyse simulated images qualitatively. A transparent simulator that is verified from its physical principles upwards,
+driven by the exact annotation of current Sentinel-1 products, and assessed quantitatively against real images for
+several backscatter laws, viewing geometries, processing choices and land-cover classes is not readily available. This
+work addresses this gap.

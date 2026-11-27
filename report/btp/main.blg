@@ -1,0 +1,51 @@
+This is BibTeX, Version 0.99e
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+Reallocating 'name_of_file' (item size: 1) to 9 items.
+The style file: unsrtnat.bst
+Reallocating 'name_of_file' (item size: 1) to 11 items.
+Database file #1: references.bib
+Warning--empty year in s1pd
+Warning--empty year in planetary
+You've used 31 entries,
+            2481 wiz_defined-function locations,
+            729 strings with 9481 characters,
+and the built_in function-call counts, 12169 in all, are:
+= -- 987
+> -- 700
+< -- 18
++ -- 269
+- -- 207
+* -- 981
+:= -- 1983
+add.period$ -- 95
+call.type$ -- 31
+change.case$ -- 53
+chr.to.int$ -- 31
+cite$ -- 33
+duplicate$ -- 588
+empty$ -- 1093
+format.name$ -- 256
+if$ -- 2536
+int.to.chr$ -- 1
+int.to.str$ -- 32
+missing$ -- 33
+newline$ -- 164
+num.names$ -- 96
+pop$ -- 265
+preamble$ -- 1
+purify$ -- 31
+quote$ -- 0
+skip$ -- 332
+stack$ -- 0
+substring$ -- 568
+swap$ -- 73
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 196
+warning$ -- 2
+while$ -- 103
+width$ -- 0
+write$ -- 410
+(There were 2 warnings)

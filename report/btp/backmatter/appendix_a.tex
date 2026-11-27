@@ -1,0 +1,24 @@
+\chapter{Code and Data Availability}
+\label{app:code}
+\noindent\begin{minipage}{0.66\textwidth}
+The \texttt{sarsim} package, the experiment pipeline \texttt{run\_all.py}, the unit tests, the tutorial notebook, the
+graphical application, this report and the posters are available at\\[4pt]
+\url{\repoURL}\\[4pt]
+All input data are downloaded from the Microsoft Planetary Computer without registration and cached locally.
+\end{minipage}\hfill
+\begin{minipage}{0.30\textwidth}\centering
+\includegraphics[width=\textwidth]{qr_repo.png}\\[2pt]
+{\small Repository}
+\end{minipage}
+
+\section*{Reproducing the Results}
+The environment is pinned with \texttt{uv} (Python 3.12). Every number and figure of this report is reproduced by:
+\begin{verbatim}
+uv sync
+uv run pytest -q tests
+uv run python run_all.py
+uv run python report/make_tables.py
+\end{verbatim}
+
+\section*{Sentinel-1 Products}
+{\scriptsize\ttfamily \sceneAsc\\ \sceneDesc\par}

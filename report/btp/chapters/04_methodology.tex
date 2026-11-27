@@ -1,0 +1,86 @@
+\chapter{Methodology}
+\label{ch:method}
+The simulator was developed incrementally, from a single point target to a full Sentinel-1 scene. Each stage had to pass a quantitative test before the next stage was built, and the tests that failed determined the design decisions of the final processing chain (Fig.~\ref{fig:design}). The final data flow is summarised in Fig.~\ref{fig:dataflow}.
+
+\section{Raw-Signal Simulator}
+\label{sec:raw}
+To verify the physics of the simulation, a raw-signal simulator was implemented for a sensor with Sentinel-1-like parameters (wavelength $\lambda=5.55$\,cm, chirp bandwidth $B=50$\,MHz, pulse length $T_p=10\,\mu$s, sampling rate 60\,MHz, antenna length $L=12.3$\,m, pulse repetition frequency 1700\,Hz) flying a straight track at 693\,km altitude with a look angle of 35$^\circ$ over a flat Earth. The transmitted pulse is the linear frequency-modulated chirp
+\begin{equation}
+s(t)=\exp\!\left(j\pi K_r t^2\right),\qquad |t|<T_p/2,\qquad K_r=B/T_p .
+\end{equation}
+For a set of point scatterers with complex reflectivity $a_i$ at positions $\mathbf{P}_i$, the echo received at slow time $\eta$ is
+\begin{equation}
+e(t,\eta)=\sum_i a_i\,G\!\left(\vartheta_i(\eta)\right)\,s\!\left(t-\frac{2R_i(\eta)}{c}\right)\exp\!\left(-j\frac{4\pi R_i(\eta)}{\lambda}\right),
+\label{eq:raw}
+\end{equation}
+where $R_i(\eta)$ is the range from the sensor to scatterer $i$ and $G$ is the two-way azimuth antenna pattern $\mathrm{sinc}^2(L\vartheta/\lambda)$ of the squint angle $\vartheta$. Equation~(\ref{eq:raw}) is evaluated efficiently by placing a band-limited impulse at the exact fractional delay of each scatterer and convolving with the chirp in the frequency domain. Range compression is performed by matched filtering with the chirp replica, and azimuth compression by time-domain back-projection,
+\begin{equation}
+I(\mathbf{x})=\sum_{\eta} s_{rc}\!\left(\frac{2R(\mathbf{x},\eta)}{c},\eta\right)\exp\!\left(j\frac{4\pi R(\mathbf{x},\eta)}{\lambda}\right),
+\end{equation}
+which is exact for arbitrary scene geometry and therefore also displaces elevated points towards the sensor when the image is formed on a flat reference plane. The simulator was verified on a single point target, on lines of targets, on three targets observed along the synthetic aperture, on fields of randomly distributed scatterers (speckle), on a sinusoidal surface and on a $480\times480$\,m patch of the Copernicus DEM (Section~\ref{sec:res-verif}).
+
+\section{Image-Domain Simulator}
+Because generating raw data for millions of scatterers is impractical, scene-scale simulations use an image-domain simulator: every DEM facet is projected directly to its zero-Doppler position (azimuth time, slant range), its backscattered power is accumulated in the image grid and, for comparison with focused raw-signal simulations, blurred with the impulse response measured in Section~\ref{sec:res-verif}. The equivalence of the two approaches was verified on the sinusoidal surface and on the DEM patch.
+
+\section{Range-Doppler Geocoding in Sentinel-1 GRD Geometry}
+For the real scenes, the orbit state vectors within $\pm90$\,s of the scene are fitted with a polynomial of degree 7 per ECEF coordinate; its derivative reproduces the annotated velocities to 0.1\,mm/s. For a ground point $\mathbf{X}$, the zero-Doppler azimuth time $t$ solves
+\begin{equation}
+f(t)=\left(\mathbf{X}-\mathbf{S}(t)\right)\cdot\mathbf{V}(t)=0,
+\label{eq:zd}
+\end{equation}
+where $\mathbf{S}$ and $\mathbf{V}$ are the sensor position and velocity. Equation~(\ref{eq:zd}) is solved by Newton iteration with $f'(t)=-|\mathbf{V}|^2+(\mathbf{X}-\mathbf{S})\cdot\mathbf{A}$; eight iterations reach machine precision. The GRD line is $t/\Delta t_{az}$, with $t$ measured from the first image line. The slant range $R=|\mathbf{X}-\mathbf{S}(t)|$ is converted to ground range with the annotated SRGR polynomial
+\begin{equation}
+g(R)=\sum_{k=0}^{8}c_k\,(R-R_0)^k ,
+\end{equation}
+and the GRD pixel is $g/\Delta_{gr}$. The annotation lists one polynomial set per second of azimuth time. Interpolating linearly between consecutive sets, an apparently natural choice, produced range errors of up to 3.3 pixels with respect to the geolocation grid of the product, because consecutive sets differ by up to 19 pixels. Applying each set from its time tag until the next one (``valid-from'' rule) removes this error (Section~\ref{sec:res-geo}).
+
+\section{DEM Facets, Local Incidence Angle, Shadow and Layover}
+The ellipsoidal DEM is oversampled three times by bilinear interpolation (about $10\times7$\,m facets, smaller than a GRD pixel) and converted to ECEF coordinates. Facet normals $\hat{\mathbf{n}}$ and true facet areas $A$ follow from the cross product of the grid tangent vectors, and the local incidence angle from $\cos\theta_{loc}=-\hat{\mathbf{u}}\cdot\hat{\mathbf{n}}$, with $\hat{\mathbf{u}}$ the unit look vector. To detect shadow and layover, facets are sorted along each azimuth line by their ground position $\psi$ (geocentric angle from the sensor). A facet is in shadow if a facet closer to the ground track is seen under a larger off-nadir angle $\alpha$, and in layover if a closer facet has a larger slant range or a farther facet a smaller one:
+\begin{equation}
+\mathrm{shadow}:\ \alpha<\max_{\psi'<\psi}\alpha',\qquad \mathrm{layover}:\ R<\max_{\psi'<\psi}R' \ \ \lor\ \ R>\min_{\psi'>\psi}R' .
+\end{equation}
+The grouped running extrema are computed in one vectorised pass. For the 7.0 million facets of a scene, the geometry is computed in blocks of DEM rows and stored in single precision (about 34 bytes per facet), which keeps the memory footprint at about 240\,MB.
+
+\section{Radiometric Model}
+Each illuminated facet contributes $\sigz(\theta_{loc})\,A$ to the four GRD pixels surrounding its fractional (line, pixel) position by bilinear splatting, and the sum is divided by the ellipsoid pixel area $\Delta_{az}\Delta_{gr}$. The simulated image is therefore in the same unit as ESA-calibrated $\sigz$, which refers to the ellipsoid~\cite{small2011}. Five backscatter laws were compared: a constant law, which retains only the illuminated-area term; the cosine law $\sigz\propto\cos\theta_{loc}$; Lambert's law $\sigz\propto\cos^2\theta_{loc}$~\cite{ulaby1982}; Muhleman's law~\cite{muhleman1964},
+\begin{equation}
+\sigz(\theta_{loc})=0.0133\,\frac{\cos\theta_{loc}}{\left(\sin\theta_{loc}+0.1\cos\theta_{loc}\right)^3},
+\end{equation}
+and a law $\sigz=k\cos^{n}\theta_{loc}$ fitted to the real image. The fit is a least-squares regression of the median real $\sigz$ (in dB) in 2$^\circ$ bins of $\theta_{loc}$ between 5$^\circ$ and 80$^\circ$, excluding layover and shadow, on $10\log_{10}\cos\theta_{loc}$.
+
+\section{Comparison with Sentinel-1}
+Real digital numbers were calibrated to $\sigz=\mathrm{DN}^2/A_\sigma^2$ with the bilinearly interpolated calibration table; thermal noise was not removed. Real and simulated images were multilooked with a $5\times5$ boxcar ($50\times50$\,m) and converted to dB. The simulation was co-registered to the real image by sub-pixel cross-correlation within the largest fully valid interior box of the footprint, and its absolute level was calibrated by a single constant, the median difference between real and simulated $\sigz$ in dB. Agreement is reported as the Pearson correlation $r$ and the Spearman correlation $\rho$ over all valid pixels, the structural similarity index (SSIM)~\cite{wang2004} within the interior box, and the root mean square difference (RMSE) after level calibration. For analyses in map geometry, the real image is back-geocoded to the DEM grid using the facet positions.
+
+\section{Experimental Design}
+The following experiments were carried out (Fig.~\ref{fig:dataflow}):
+\begin{itemize}
+\item E1, backscatter laws: the five laws are applied to the same ascending geometry.
+\item E2, second viewing geometry: the law fitted on the ascending scene is applied, unchanged, to the descending scene, which acts as an independent validation.
+\item E3, geometric validation: the geocoding is compared with the geolocation grid of both products, and the real $\sigz$ is analysed inside the predicted shadow, layover and foreshortening classes.
+\item E4, sensitivity: the simulation is repeated without geoid correction, without DEM oversampling and with a 90\,m DEM obtained by $3\times3$ aggregation of GLO-30.
+\item E5, land cover: the residual (real minus simulated) is analysed per WorldCover class in map geometry.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{\input{../tikz/dataflow.tex}}
+\caption[Data flow of the simulator]{Data flow of the simulator. Blue: inputs; green: simulation; beige: real-image path; orange: products. The dashed loop fits the backscatter law to the real image and feeds it back into the simulation.}
+\label{fig:dataflow}
+\vspace{8mm}
+\resizebox{\textwidth}{!}{\input{../tikz/design.tex}}
+\caption[Design evolution of the simulator]{Design evolution of the simulator. Each iteration had to pass the listed test before the next was built. Green: test passed; red: test failed, and the fix that became part of the final design.}
+\label{fig:design}
+\end{figure}
+
+\section{Finalized Design}
+\label{sec:final-design}
+The final processing chain is the result of nine development iterations, summarised in Fig.~\ref{fig:design}. The
+verification of the raw-signal simulator on a point target, on the synthetic aperture and on distributed and periodic
+surfaces (iterations 1 to 3), and its comparison with the image-domain simulator on a real DEM patch (iteration 4), led
+to the adoption of the image-domain simulator for scene-scale simulations. The four iterations that failed their test
+fixed the remaining design decisions: the slant-to-ground-range polynomials are applied piece-wise rather than
+interpolated (iteration 5), the DEM is oversampled three times so that every GRD pixel receives facets (iteration 6),
+terrain heights are converted to ellipsoidal heights with the EGM2008 geoid (iteration 7), and the facet geometry is
+computed block-wise in single precision so that a full scene fits in memory (iteration 8). The backscatter law,
+finally, is fitted to the real image and cross-validated on the second viewing geometry (iteration 9). The resulting
+data flow is the one shown in Fig.~\ref{fig:dataflow}.
