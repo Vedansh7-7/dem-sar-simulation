@@ -1,0 +1,4 @@
+Canva -> Create a design -> Import file (or Uploads -> Upload files) -> choose poster.pdf.
+Canva converts the PDF into an editable A1 design: text boxes stay editable, images become
+separate elements. If a figure looks soft, replace it with the PNG of the same name from
+figures/. All text is also in TEXT.md.

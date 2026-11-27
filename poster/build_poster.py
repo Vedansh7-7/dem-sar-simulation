@@ -64,7 +64,8 @@ common = [CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--all
           "--virtual-time-budget=15000", "--run-all-compositor-stages-before-draw"]
 subprocess.run(common + ["--no-pdf-header-footer", f"--print-to-pdf={P / 'poster.pdf'}", url], check=True,
                capture_output=True)
-# A1 at 96 dpi = 2245 x 3179 px; render at 2x for a sharp PNG
-subprocess.run(common + ["--window-size=2245,3179", "--force-device-scale-factor=2",
-                         f"--screenshot={P / 'poster.png'}", url], check=True, capture_output=True)
+# PNG from the PDF (Chrome's --screenshot can hang on large pages)
+import pymupdf  # noqa: E402
+
+pymupdf.open(P / "poster.pdf")[0].get_pixmap(dpi=110).save(P / "poster.png")
 print("poster ->", P / "poster.pdf", P / "poster.png")
