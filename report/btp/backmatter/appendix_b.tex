@@ -1,0 +1,35 @@
+\chapter{Simulation Parameters and Repository Structure}
+\label{app:structure}
+
+\section*{Parameters of the Raw-Signal Simulator}
+\begin{table}[H]
+\centering\small
+\caption{Parameters of the Sentinel-1-like sensor used by the raw-signal simulator.}
+\label{tab:sensor}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lr@{\hspace{1.2cm}}lr}
+\toprule
+wavelength & 5.55\,cm & synthetic aperture $L_{sa}$ & 3.81\,km\\
+orbit height & 693\,km & processed aperture & $\pm0.6\,L_{sa}$\\
+look angle & 35$^\circ$ & slant / ground-range resolution & 3.00 / 5.23\,m\\
+slant range (centre) & 846.0\,km & azimuth resolution $L/2$ & 6.15\,m\\
+chirp bandwidth / length & 50\,MHz / 10\,$\mu$s & range sampling & 60\,MHz (2.50\,m)\\
+PRF / pulse spacing & 1700\,Hz / 4.47\,m & antenna & $12.3\times0.821$\,m\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\section*{Repository Structure}
+{\small
+\begin{tabularx}{\textwidth}{lX}\toprule
+\texttt{sarsim/s1.py} & annotation parser, orbit fit, zero-Doppler geocoding, SRGR conversion, calibration\\
+\texttt{sarsim/rdsim.py} & facet geometry, shadow and layover, backscatter laws, rendering\\
+\texttt{sarsim/compare.py} & multilooking, co-registration, metrics, back-geocoding\\
+\texttt{sarsim/data.py} & cached access to GLO-30, Sentinel-1 GRD windows and WorldCover\\
+\texttt{sarsim/geodesy.py} & geodetic and ECEF conversions, EGM2008 geoid undulation\\
+\texttt{run\_all.py} & experiments E1 to E5; figures in \texttt{figures/pipeline/}, results in \texttt{results/}\\
+\texttt{notebooks/} & tutorial notebook (executed \texttt{.ipynb} and jupytext \texttt{.py} source)\\
+\texttt{tests/} & unit tests\\
+\texttt{report/} & article-style manuscript and this report (\texttt{report/btp/})\\
+\texttt{poster/} & A3 academic poster, A1 newspaper-style poster and Canva package\\
+\bottomrule\end{tabularx}\par}

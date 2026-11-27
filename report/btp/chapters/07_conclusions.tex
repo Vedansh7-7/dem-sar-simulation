@@ -1,0 +1,26 @@
+\chapter{Conclusions and Scope for Future Work}
+\label{ch:conclusions}
+
+\section{Conclusions}
+This study developed a SAR simulator from first principles and assessed how far a simulation driven only by a DEM and
+the annotated orbit of the product predicts real Sentinel-1 images of Alpine terrain. A raw-signal simulator, verified
+against theory from the impulse response of a point target to a real DEM, validated a fast image-domain simulator
+($r=0.97$). Range-Doppler geocoding with the annotated orbit reproduced the geolocation grid of the products to
+\geoDpixMax{} pixels, provided that the slant-to-ground-range polynomials are applied piece-wise rather than
+interpolated; interpolation caused errors of up to 3.3 pixels. Predicted shadow and layover coincided with the darkest
+and brightest real pixels in both viewing geometries. A local-incidence-angle law $k\cos^{n}\theta_{loc}$ fitted to
+the ascending scene, with $n=\nFit$ (close to Lambert's law), reproduced the real $\sigma^0$ with $r=\rAsc$ and
+transferred unchanged to the descending scene ($r=\rDesc$). Geoid correction and DEM oversampling proved essential for
+products at full resolution, while a 90\,m DEM sufficed at the 50\,m scale of the comparison. The remaining
+disagreement is dominated by land cover: forest was reproduced without bias, whereas built-up areas and bare rock were
+about 3\,dB brighter and water about 4\,dB darker than predicted.
+
+\section{Scope for Future Work}
+Several extensions follow directly from the limitations of this study. First, land-cover-dependent backscatter laws,
+for example one law per WorldCover class, would address the largest part of the remaining radiometric disagreement.
+Second, a double-bounce term for built-up areas, derived from building footprints and heights, would explain the
+residuals over the city. Third, thermal-noise removal would allow predicted shadow to be compared with zero rather than
+with the noise floor. Fourth, multi-temporal stacks of Sentinel-1 images would separate seasonal effects such as snow
+cover and soil moisture from the terrain signal. Finally, the simulated illuminated-area image and the layover and
+shadow masks can be used directly for radiometric terrain flattening and for automatic simulation-based
+co-registration of Sentinel-1 products.

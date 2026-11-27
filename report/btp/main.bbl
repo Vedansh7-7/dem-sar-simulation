@@ -1,0 +1,208 @@
+\begin{thebibliography}{31}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Torres et~al.(2012)Torres, Snoeij, Geudtner, Bibby, Davidson, Attema,
+  Potin, Rommen, Floury, Brown, et~al.]{torres2012}
+Ramon Torres, Paul Snoeij, Dirk Geudtner, David Bibby, Malcolm Davidson, Evert
+  Attema, Pierre Potin, Bj{\"o}rn Rommen, Nicolas Floury, Mike Brown, et~al.
+\newblock {GMES} {Sentinel-1} mission.
+\newblock \emph{Remote Sensing of Environment}, 120:\penalty0 9--24, 2012.
+
+\bibitem[Moreira et~al.(2013)Moreira, Prats-Iraola, Younis, Krieger, Hajnsek,
+  and Papathanassiou]{moreira2013}
+Alberto Moreira, Pau Prats-Iraola, Marwan Younis, Gerhard Krieger, Irena
+  Hajnsek, and Konstantinos~P. Papathanassiou.
+\newblock A tutorial on synthetic aperture radar.
+\newblock \emph{IEEE Geoscience and Remote Sensing Magazine}, 1\penalty0
+  (1):\penalty0 6--43, 2013.
+
+\bibitem[Curlander and McDonough(1991)]{curlander1991}
+John~C. Curlander and Robert~N. McDonough.
+\newblock \emph{Synthetic Aperture Radar: Systems and Signal Processing}.
+\newblock Wiley, New York, NY, USA, 1991.
+
+\bibitem[Cumming and Wong(2005)]{cumming2005}
+Ian~G. Cumming and Frank~H. Wong.
+\newblock \emph{Digital Processing of Synthetic Aperture Radar Data: Algorithms
+  and Implementation}.
+\newblock Artech House, Norwood, MA, USA, 2005.
+
+\bibitem[Leberl(1990)]{leberl1990}
+Franz~W. Leberl.
+\newblock \emph{Radargrammetric Image Processing}.
+\newblock Artech House, Norwood, MA, USA, 1990.
+
+\bibitem[Kropatsch and Strobl(1990)]{kropatsch1990}
+Walter~G. Kropatsch and Dieter Strobl.
+\newblock The generation of {SAR} layover and shadow maps from digital
+  elevation models.
+\newblock \emph{IEEE Transactions on Geoscience and Remote Sensing},
+  28\penalty0 (1):\penalty0 98--107, 1990.
+
+\bibitem[Gelautz et~al.(1998)Gelautz, Frick, Raggam, Burgstaller, and
+  Leberl]{gelautz1998}
+Margrit Gelautz, Heinrich Frick, Johann Raggam, J{\"u}rgen Burgstaller, and
+  Franz Leberl.
+\newblock {SAR} image simulation and analysis of alpine terrain.
+\newblock \emph{ISPRS Journal of Photogrammetry and Remote Sensing},
+  53\penalty0 (1):\penalty0 17--38, 1998.
+
+\bibitem[Schreier(1993)]{schreier1993}
+Gunter Schreier, editor.
+\newblock \emph{{SAR} Geocoding: Data and Systems}.
+\newblock Wichmann, Karlsruhe, Germany, 1993.
+
+\bibitem[Meier et~al.(1993)Meier, Frei, and N{\"u}esch]{meier1993}
+Erich Meier, Urs Frei, and Daniel N{\"u}esch.
+\newblock Precise terrain corrected geocoded images.
+\newblock In Gunter Schreier, editor, \emph{{SAR} Geocoding: Data and Systems},
+  pages 173--185. Wichmann, Karlsruhe, Germany, 1993.
+
+\bibitem[Small(2011)]{small2011}
+David Small.
+\newblock Flattening gamma: Radiometric terrain correction for {SAR} imagery.
+\newblock \emph{IEEE Transactions on Geoscience and Remote Sensing},
+  49\penalty0 (8):\penalty0 3081--3093, 2011.
+
+\bibitem[L{\"o}w and Mauser(2007)]{low2007}
+Alexander L{\"o}w and Wolfram Mauser.
+\newblock Generation of geometrically and radiometrically terrain corrected
+  {SAR} image products.
+\newblock \emph{Remote Sensing of Environment}, 106\penalty0 (3):\penalty0
+  337--349, 2007.
+
+\bibitem[Ulander(1996)]{ulander1996}
+Lars M.~H. Ulander.
+\newblock Radiometric slope correction of synthetic-aperture radar images.
+\newblock \emph{IEEE Transactions on Geoscience and Remote Sensing},
+  34\penalty0 (5):\penalty0 1115--1122, 1996.
+
+\bibitem[Frey et~al.(2013)Frey, Santoro, Werner, and Wegm{\"u}ller]{frey2013}
+Othmar Frey, Maurizio Santoro, Charles~L. Werner, and Urs Wegm{\"u}ller.
+\newblock {DEM}-based {SAR} pixel-area estimation for enhanced geocoding
+  refinement and radiometric normalization.
+\newblock \emph{IEEE Geoscience and Remote Sensing Letters}, 10\penalty0
+  (1):\penalty0 48--52, 2013.
+
+\bibitem[Nitti et~al.(2011)Nitti, Hanssen, Refice, Bovenga, and
+  Nutricato]{nitti2011}
+Davide~O. Nitti, Ramon~F. Hanssen, Alberto Refice, Fabio Bovenga, and Raffaele
+  Nutricato.
+\newblock Impact of {DEM}-assisted coregistration on high-resolution {SAR}
+  interferometry.
+\newblock \emph{IEEE Transactions on Geoscience and Remote Sensing},
+  49\penalty0 (3):\penalty0 1127--1143, 2011.
+
+\bibitem[{European Space Agency} and {Airbus}(2022)]{copdem}
+{European Space Agency} and {Airbus}.
+\newblock \emph{Copernicus {DEM}: Global and European Digital Elevation Model
+  ({COP-DEM}), Product Handbook}.
+\newblock ESA, Paris, France, 2022.
+
+\bibitem[{European Space Agency}()]{s1pd}
+{European Space Agency}.
+\newblock \emph{{Sentinel-1} Product Definition, {S1-RS-MDA-52-7440}}.
+\newblock ESA, Paris, France.
+
+\bibitem[{Microsoft}()]{planetary}
+{Microsoft}.
+\newblock Planetary computer.
+\newblock \url{https://planetarycomputer.microsoft.com}.
+\newblock Accessed on 28 November 2026.
+
+\bibitem[Goodman(1976)]{goodman1976}
+Joseph~W. Goodman.
+\newblock Some fundamental properties of speckle.
+\newblock \emph{Journal of the Optical Society of America}, 66\penalty0
+  (11):\penalty0 1145--1150, 1976.
+
+\bibitem[Oliver and Quegan(1998)]{oliver1998}
+Chris Oliver and Shaun Quegan.
+\newblock \emph{Understanding Synthetic Aperture Radar Images}.
+\newblock Artech House, Norwood, MA, USA, 1998.
+
+\bibitem[Ulaby et~al.(1982)Ulaby, Moore, and Fung]{ulaby1982}
+Fawwaz~T. Ulaby, Richard~K. Moore, and Adrian~K. Fung.
+\newblock \emph{Microwave Remote Sensing: Active and Passive, Vol. {II}: Radar
+  Remote Sensing and Surface Scattering and Emission Theory}.
+\newblock Addison-Wesley, Reading, MA, USA, 1982.
+
+\bibitem[Ulaby and Dobson(1989)]{ulaby1989}
+Fawwaz~T. Ulaby and M.~Craig Dobson.
+\newblock \emph{Handbook of Radar Scattering Statistics for Terrain}.
+\newblock Artech House, Norwood, MA, USA, 1989.
+
+\bibitem[Muhleman(1964)]{muhleman1964}
+Duane~O. Muhleman.
+\newblock Radar scattering from {Venus} and the {Moon}.
+\newblock \emph{The Astronomical Journal}, 69:\penalty0 34--41, 1964.
+
+\bibitem[Franceschetti et~al.(1992)Franceschetti, Migliaccio, Riccio, and
+  Schirinzi]{franceschetti1992}
+Giorgio Franceschetti, Maurizio Migliaccio, Daniele Riccio, and Gilda
+  Schirinzi.
+\newblock {SARAS}: A synthetic aperture radar ({SAR}) raw signal simulator.
+\newblock \emph{IEEE Transactions on Geoscience and Remote Sensing},
+  30\penalty0 (1):\penalty0 110--123, 1992.
+
+\bibitem[Balz and Stilla(2009)]{balz2009}
+Timo Balz and Uwe Stilla.
+\newblock Hybrid {GPU}-based single- and double-bounce {SAR} simulation.
+\newblock \emph{IEEE Transactions on Geoscience and Remote Sensing},
+  47\penalty0 (10):\penalty0 3519--3529, 2009.
+
+\bibitem[Auer et~al.(2010)Auer, Hinz, and Bamler]{auer2010}
+Stefan Auer, Stefan Hinz, and Richard Bamler.
+\newblock Ray-tracing simulation techniques for understanding high-resolution
+  {SAR} images.
+\newblock \emph{IEEE Transactions on Geoscience and Remote Sensing},
+  48\penalty0 (3):\penalty0 1445--1456, 2010.
+
+\bibitem[Bamler and Hartl(1998)]{bamler1998}
+Richard Bamler and Philipp Hartl.
+\newblock Synthetic aperture radar interferometry.
+\newblock \emph{Inverse Problems}, 14\penalty0 (4):\penalty0 R1--R54, 1998.
+
+\bibitem[Schubert et~al.(2015)Schubert, Small, Miranda, Geudtner, and
+  Meier]{schubert2015}
+Adrian Schubert, David Small, Nuno Miranda, Dirk Geudtner, and Erich Meier.
+\newblock {Sentinel-1A} product geolocation accuracy: Commissioning phase
+  results.
+\newblock \emph{Remote Sensing}, 7\penalty0 (7):\penalty0 9431--9449, 2015.
+
+\bibitem[Gisinger et~al.(2021)Gisinger, Schubert, Breit, Garthwaite, Balss,
+  Willberg, Small, Eineder, and Miranda]{gisinger2021}
+Christoph Gisinger, Adrian Schubert, Helko Breit, Matthew Garthwaite, Ulrich
+  Balss, Martin Willberg, David Small, Michael Eineder, and Nuno Miranda.
+\newblock In-depth verification of {Sentinel-1} and {TerraSAR-X} geolocation
+  accuracy using the {Australian} corner reflector array.
+\newblock \emph{IEEE Transactions on Geoscience and Remote Sensing},
+  59\penalty0 (2):\penalty0 1154--1181, 2021.
+
+\bibitem[Pavlis et~al.(2012)Pavlis, Holmes, Kenyon, and Factor]{pavlis2012}
+Nikolaos~K. Pavlis, Simon~A. Holmes, Steve~C. Kenyon, and John~K. Factor.
+\newblock The development and evaluation of the {Earth} {Gravitational} {Model}
+  2008 ({EGM2008}).
+\newblock \emph{Journal of Geophysical Research: Solid Earth}, 117:\penalty0
+  B04406, 2012.
+
+\bibitem[Zanaga et~al.(2022)Zanaga, Van De~Kerchove, Daems, De~Keersmaecker,
+  Brockmann, Kirches, Wevers, Cartus, Santoro, Fritz, et~al.]{worldcover}
+Daniele Zanaga, Ruben Van De~Kerchove, Dirk Daems, Wanda De~Keersmaecker,
+  Carsten Brockmann, Grit Kirches, Jan Wevers, Oliver Cartus, Maurizio Santoro,
+  Steffen Fritz, et~al.
+\newblock {ESA} {WorldCover} 10 m 2021 v200.
+\newblock Zenodo, 2022.
+
+\bibitem[Wang et~al.(2004)Wang, Bovik, Sheikh, and Simoncelli]{wang2004}
+Zhou Wang, Alan~C. Bovik, Hamid~R. Sheikh, and Eero~P. Simoncelli.
+\newblock Image quality assessment: From error visibility to structural
+  similarity.
+\newblock \emph{IEEE Transactions on Image Processing}, 13\penalty0
+  (4):\penalty0 600--612, 2004.
+
+\end{thebibliography}

@@ -1,0 +1,28 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\thispagestyle{plain}
+
+Synthetic aperture radar (SAR) images of mountainous terrain are dominated by geometry: foreshortening, layover and
+radar shadow relocate and redistribute the backscattered energy long before surface properties determine the signal.
+This work develops a SAR simulator from first principles and assesses how much of a real Sentinel-1 image of Alpine
+terrain can be predicted from a digital elevation model (DEM) alone. A raw-signal simulator, verified against theory
+for point targets (slant-range resolution of 2.66\,m, azimuth resolution of 5.45\,m), distributed scatterers and
+periodic topography, is used to validate a fast image-domain simulator ($r=0.97$ on a real DEM patch, about 3000 times
+faster). The image-domain simulator is then driven by the Copernicus GLO-30 DEM and by the orbit, timing and
+slant-to-ground-range annotation of two Sentinel-1 IW GRD scenes (ascending and descending) over Innsbruck, Austria.
+
+The implemented range-Doppler geocoding reproduces the geolocation grid of the products to \geoDpixMax{} pixels in
+range and \geoDtMax{} ms in azimuth time, provided that the slant-to-ground-range polynomials are applied piece-wise
+rather than interpolated. Predicted radar shadow coincides with the darkest real pixels (median $-21.0$\,dB, the noise
+floor) and predicted layover with the brightest ($-3.5$\,dB). A local-incidence-angle law $k\cos^{n}\theta_{loc}$
+fitted to the ascending scene ($n=\nFit$) reproduces the real $\sigma^0$ with a Pearson correlation of \rAsc{} and
+transfers unchanged to the descending scene ($r=\rDesc$). Land cover explains most of the remaining disagreement:
+forest is reproduced without bias, whereas built-up areas and bare rock are about 3\,dB brighter and water about 4\,dB
+darker than predicted.
+
+The simulator, the experiment pipeline, a tutorial notebook and a graphical application are openly available.
+
+\vspace{1cm}
+\noindent\textbf{Keywords:} SAR simulation; Sentinel-1; digital elevation model; Copernicus DEM; layover; radar
+shadow; range-Doppler geocoding; backscatter model; Alps
+\cleardoublepage
