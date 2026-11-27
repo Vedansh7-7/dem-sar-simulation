@@ -1,1 +1,7 @@
-\begin{tabular}{l}\toprule \textcolor{red}{[table pending: pipeline still running]}\\ \bottomrule\end{tabular}
+\begin{tabular}{lrrrrr}\toprule
+ Configuration & $r$ & SSIM & $\Delta$line & $\Delta$pixel & empty px [\%]\\\midrule
+baseline (GLO-30, 3x oversampled, geoid) & 0.710 & 0.508 & -2.2 & 3.5 & 0.01 \\
+no geoid correction (N = 0) & 0.710 & 0.507 & -2.2 & -2.3 & 0.01 \\
+no DEM oversampling & 0.706 & 0.446 & -2.2 & 3.5 & 45.82 \\
+90 m DEM (GLO-30 aggregated 3x3) & 0.714 & 0.418 & -2.3 & 3.5 & 0.00 \\
+\bottomrule\end{tabular}
