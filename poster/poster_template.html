@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Radar Gazette — DEM-based SAR Simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Oswald:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  @page { size: 594mm 841mm; margin: 0; }
+  :root {
+    --paper: #efe8d8; --paper-dark: #e2d8c2; --ink: #1d1b18; --ink-soft: #3b372f;
+    --rule: #2a2621; --accent: #1f3a5f; --accent-soft: #d9e1ea; --red: #8c1c13;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 594mm; height: 841mm; overflow: hidden;
+    color: var(--ink); font-family: "Source Serif 4", Georgia, serif; font-size: 17.5pt; line-height: 1.33;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(255,255,255,.35), transparent 55%),
+      radial-gradient(ellipse at 85% 90%, rgba(120,95,50,.16), transparent 60%),
+      radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(90,70,40,.22) 100%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.012) 0 2px, transparent 2px 4px),
+      var(--paper);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .page { position: absolute; inset: 14mm 16mm 12mm 16mm; display: flex; flex-direction: column; }
+
+  /* ---------------- masthead ---------------- */
+  .topline { display: flex; justify-content: space-between; font-family: Oswald, sans-serif; font-weight: 500;
+             letter-spacing: .18em; font-size: 15pt; text-transform: uppercase; padding-bottom: 3mm; }
+  .masthead { text-align: center; border-top: 3px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 3mm 0 1mm; }
+  .masthead h1 { font-family: "Playfair Display", serif; font-weight: 900; font-size: 128pt; line-height: .95;
+                 margin: 0; letter-spacing: .01em; }
+  .tagline { display: flex; align-items: center; justify-content: space-between; font-family: Oswald, sans-serif;
+             letter-spacing: .32em; font-size: 15pt; text-transform: uppercase; padding: 2mm 2mm 2.5mm; }
+  .tagline .mid { flex: 1; text-align: center; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin: 0 8mm; padding: 1.2mm 0; }
+  nav { display: flex; justify-content: space-around; border-top: 3px double var(--rule); border-bottom: 3px double var(--rule);
+        font-family: Oswald, sans-serif; font-weight: 600; letter-spacing: .14em; font-size: 16pt; padding: 2mm 0; margin-bottom: 6mm; }
+  nav span { padding: 0 6mm; border-right: 1px solid var(--rule); }
+  nav span:last-child { border-right: none; }
+  nav .on { color: var(--accent); }
+
+  /* ---------------- lead story ---------------- */
+  .lead { display: grid; grid-template-columns: 1.02fr 1.55fr .78fr; gap: 9mm; border-bottom: 3px solid var(--rule); padding-bottom: 6mm; }
+  .headline { font-family: Oswald, sans-serif; font-weight: 700; font-size: 66pt; line-height: 1.0; margin: 0 0 4mm; text-transform: uppercase; }
+  .deck { font-family: "Source Serif 4", serif; font-weight: 600; color: var(--accent); font-size: 23pt; line-height: 1.25; margin: 0 0 4mm; }
+  .byline { font-family: Oswald, sans-serif; letter-spacing: .08em; font-size: 15pt; border-top: 1px solid var(--rule);
+            border-bottom: 1px solid var(--rule); padding: 1.5mm 0; margin-bottom: 4mm; text-transform: uppercase; }
+  .dropcap::first-letter { font-family: "Playfair Display", serif; font-weight: 900; float: left; font-size: 66pt; line-height: .85; padding: 2mm 3mm 0 0; }
+  .hero { position: relative; border: 1px solid var(--rule); background: #111; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero .cap { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.85));
+               color: #f3efe6; font-family: Oswald, sans-serif; letter-spacing: .08em; padding: 10mm 5mm 3mm; font-size: 15pt; }
+  .hero .cap b { font-size: 21pt; letter-spacing: .12em; }
+  .glance { border: 2px solid var(--rule); background: rgba(255,255,255,.25); }
+  .glance h3 { margin: 0; background: var(--ink); color: var(--paper); font-family: Oswald, sans-serif; letter-spacing: .16em;
+               text-align: center; font-size: 17pt; padding: 2mm; font-weight: 600; }
+  .stat { display: grid; grid-template-columns: 13mm 1fr; gap: 3mm; padding: 2.4mm 4mm; border-bottom: 1px solid rgba(0,0,0,.25); align-items: center; }
+  .stat:last-child { border-bottom: none; }
+  .stat .ico { width: 12mm; height: 12mm; border: 1.5px solid var(--ink); display: grid; place-items: center; font-family: Oswald; font-size: 13pt; }
+  .stat .k { font-family: Oswald, sans-serif; font-size: 11.5pt; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+  .stat .v { font-family: Oswald, sans-serif; font-weight: 700; font-size: 25pt; line-height: 1.05; }
+  .stat .s { font-size: 11.5pt; color: var(--ink-soft); line-height: 1.15; }
+
+  /* ---------------- body columns ---------------- */
+  .body { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin-top: 5mm; min-height: 0; }
+  .col { padding: 0 6.5mm; border-right: 1px solid var(--rule); display: flex; flex-direction: column; gap: 3.5mm; min-height: 0; }
+  .col:first-child { padding-left: 0; } .col:last-child { padding-right: 0; border-right: none; }
+  .sec { border-top: 3px solid var(--rule); padding-top: 2mm; }
+  .sec h2 { font-family: Oswald, sans-serif; font-weight: 700; font-size: 31pt; line-height: 1.02; margin: 0 0 1mm; text-transform: uppercase; }
+  .sec h2 .n { color: var(--accent); }
+  .sec .kicker { font-family: "Source Serif 4", serif; font-style: italic; color: var(--accent); font-size: 18.5pt; margin: 0 0 2mm; }
+  p { margin: 0 0 2.2mm; text-align: justify; hyphens: auto; }
+  ul { margin: 0 0 2mm; padding-left: 6mm; } li { margin-bottom: 1.2mm; text-align: justify; hyphens: auto; }
+  figure { margin: 1mm 0 2mm; }
+  figure img { width: 100%; display: block; border: 1px solid rgba(0,0,0,.55); background: #fff; }
+  figcaption { font-size: 13pt; line-height: 1.2; font-style: italic; margin-top: 1.2mm; color: var(--ink-soft); }
+  figcaption b { font-style: normal; font-family: Oswald, sans-serif; letter-spacing: .04em; color: var(--ink); }
+  .box { border: 2px solid var(--rule); padding: 3mm 4mm; background: rgba(255,255,255,.28); }
+  .box h4 { margin: 0 0 1.5mm; font-family: Oswald, sans-serif; letter-spacing: .12em; font-size: 15pt; text-transform: uppercase; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5pt; }
+  th { font-family: Oswald, sans-serif; font-weight: 600; letter-spacing: .05em; text-align: left; border-bottom: 2px solid var(--rule); padding: 1mm 1.5mm; }
+  td { border-bottom: 1px solid rgba(0,0,0,.2); padding: .9mm 1.5mm; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.best td { font-weight: 700; }
+  .pull { font-family: "Playfair Display", serif; font-weight: 700; font-size: 27pt; line-height: 1.15; text-align: center;
+          border-top: 3px double var(--rule); border-bottom: 3px double var(--rule); padding: 3mm 2mm; margin: 1mm 0 2mm; }
+  .pull small { display: block; font-family: Oswald, sans-serif; font-weight: 500; font-size: 12pt; letter-spacing: .18em; margin-top: 1.5mm; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .mono { font-family: "IBM Plex Mono", monospace; font-size: 12pt; }
+
+  /* ---------------- bottom strip ---------------- */
+  .bottom { display: grid; grid-template-columns: 1.55fr 1.05fr .75fr; gap: 0; border-top: 3px solid var(--rule); margin-top: 4mm; padding-top: 3mm; }
+  .bottom > div { padding: 0 6.5mm; border-right: 1px solid var(--rule); }
+  .bottom > div:first-child { padding-left: 0; } .bottom > div:last-child { border-right: none; padding-right: 0; }
+  .bottom h2 { font-family: Oswald, sans-serif; font-weight: 700; font-size: 27pt; margin: 0 0 1.5mm; text-transform: uppercase; }
+  .refs { font-size: 12pt; line-height: 1.22; } .refs p { margin-bottom: 1.1mm; text-align: left; }
+  .qr { display: grid; grid-template-columns: 40mm 1fr; gap: 4mm; align-items: center; }
+  .qr img { width: 40mm; height: 40mm; image-rendering: pixelated; border: 1px solid var(--rule); background: #fff; }
+  .footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--rule); margin-top: 3mm;
+            padding-top: 1.8mm; font-family: Oswald, sans-serif; letter-spacing: .14em; font-size: 13pt; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topline"><span>Research Edition · Remote Sensing</span><span>{{date_long}}</span><span>Price: one DEM &amp; two orbits</span></div>
+  <div class="masthead"><h1>The Radar Gazette</h1></div>
+  <div class="tagline"><span>Vol. I · No. 1</span><span class="mid">All the echoes that fit to print</span><span>Innsbruck edition</span></div>
+  <nav><span class="on">Introduction</span><span>Study Area &amp; Data</span><span>Methodology</span><span>Results</span><span>Conclusions</span></nav>
+
+  <!-- ===================== LEAD STORY ===================== -->
+  <section class="lead">
+    <div>
+      <h2 class="headline">Mountains simulated from space match real radar</h2>
+      <p class="deck">DEM-based SAR simulation predicts Sentinel-1 images of the Alps — layover, shadow and all — with a correlation of r&nbsp;=&nbsp;{{rAsc}}.</p>
+      <div class="byline">By {{authors}} · {{affiliation}}</div>
+      <p class="dropcap">A radar satellite does not take pictures — it sorts echoes by distance. Over mountains, that turns slopes into bright lines, folds peaks over valleys and hides whole hillsides in shadow. This study rebuilds a SAR from first principles, feeds it the Copernicus DEM and the real Sentinel-1 orbit, and asks: <i>how much of a real Alpine radar image can terrain alone explain?</i></p>
+    </div>
+    <div class="hero">
+      <img src="{{fig}}/pipeline/p0_hero.png" alt="Real versus simulated Sentinel-1 image of Innsbruck">
+      <div class="cap"><b>REAL (LEFT) · SIMULATED FROM DEM + ORBIT (RIGHT)</b><br>Sentinel-1 σ⁰ VV over Innsbruck, Austria (radar geometry, north up)</div>
+    </div>
+    <aside class="glance">
+      <h3>Study at a glance</h3>
+      <div class="stat"><div class="ico">r</div><div><div class="k">Correlation (asc / desc)</div><div class="v">{{rAsc}} / {{rDesc}}</div><div class="s">5×5 multilook, dB, {{nPix}} M pixels</div></div></div>
+      <div class="stat"><div class="ico">⌖</div><div><div class="k">Geocoding vs ESA</div><div class="v">{{geoDpixMax}} px</div><div class="s">max error over {{nGrid}} grid points</div></div></div>
+      <div class="stat"><div class="ico">↔</div><div><div class="k">Residual offset</div><div class="v">≤ 2 px</div><div class="s">≈ one DEM cell after co-registration</div></div></div>
+      <div class="stat"><div class="ico">θ</div><div><div class="k">Fitted backscatter law</div><div class="v">cos<sup>{{nFit}}</sup>θ</div><div class="s">fit on ascending, holds on descending</div></div></div>
+      <div class="stat"><div class="ico">▲</div><div><div class="k">Terrain</div><div class="v">552–2789 m</div><div class="s">Copernicus GLO-30, 23 × 22 km</div></div></div>
+      <div class="stat"><div class="ico">€</div><div><div class="k">Data cost</div><div class="v">0</div><div class="s">all open data, no login</div></div></div>
+    </aside>
+  </section>
+
+  <!-- ===================== BODY ===================== -->
+  <div class="body">
+    <!-- column 1 -->
+    <div class="col">
+      <div class="sec">
+        <h2><span class="n">1.</span> Introduction</h2>
+        <p class="kicker">Why mountains confuse a radar</p>
+        <ul>
+          <li>A side-looking SAR measures <b>slant range</b>: terrain height moves every point towards the sensor by <i>h</i>·cot θ.</li>
+          <li>Slopes facing the radar are <b>foreshortened</b> or fall into <b>layover</b>; steep slopes facing away vanish into <b>shadow</b>.</li>
+          <li>Simulating the image from a DEM is the standard way to explain, mask and correct these effects — this work builds such a simulator from scratch and tests it against reality.</li>
+        </ul>
+      </div>
+      <div class="sec">
+        <h2><span class="n">2.</span> Study Area &amp; Data</h2>
+        <p class="kicker">Innsbruck: a city at the foot of a 2,300 m wall</p>
+        <figure><img src="{{fig}}/notebook/09a_study_area_data.png" alt="Study area">
+          <figcaption><b>Figure 1:</b> Scene footprint, Copernicus DEM and calibrated Sentinel-1 σ⁰ of the study area.</figcaption></figure>
+        <div class="box">
+          <h4>Scene report</h4>
+          <table>
+            <tr><td>DEM</td><td>Copernicus GLO-30 (EGM2008 → WGS84, N = {{geoidN}} m)</td></tr>
+            <tr><td>Ascending</td><td>{{platAsc}} IW GRDH VV · {{dateAsc}} · θ {{incAsc}}°</td></tr>
+            <tr><td>Descending</td><td>{{platDesc}} IW GRDH VV · {{dateDesc}} · θ {{incDesc}}°</td></tr>
+            <tr><td>Land cover</td><td>ESA WorldCover 2021, 10 m</td></tr>
+            <tr><td>Access</td><td>Microsoft Planetary Computer (anonymous)</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="sec">
+        <h2><span class="n">3.</span> Methodology</h2>
+        <p class="kicker">Part I — from a point to a mountain</p>
+        <p>A raw-signal simulator follows the radar physics step by step: chirp → echo → range compression → synthetic aperture → focusing by back-projection. Measured resolutions (5.5 m azimuth, 4.7 m ground range) match theory.</p>
+        <figure><img src="{{fig}}/notebook/03b_signal_chain.png" alt="signal chain">
+          <figcaption><b>Figure 2:</b> Three point targets: range &amp; Doppler history, raw data, range-compressed data and the focused image.</figcaption></figure>
+      </div>
+    </div>
+
+    <!-- column 2 -->
+    <div class="col">
+      <div class="sec" style="border-top-width:1px">
+        <p>Distributed scatterers create speckle; topography re-weights the energy. A fast <b>image-domain simulator</b> reproduces the raw-signal result on a real DEM patch with <b>r = 0.97</b> — in milliseconds instead of minutes.</p>
+        <figure><img src="{{fig}}/notebook/07_geometric_distortions_profile.png" alt="distortions">
+          <figcaption><b>Figure 3:</b> Foreshortening, layover (the slant-range fold) and shadow on a synthetic mountain.</figcaption></figure>
+        <p class="kicker">Part II — real orbit, real terrain</p>
+        <ul>
+          <li><b>Geometry:</b> 7 M DEM facets (3× oversampled) are range-Doppler geocoded with the annotated orbit (zero-Doppler Newton solve) and slant-to-ground-range polynomials.</li>
+          <li><b>Distortions:</b> facets sorted along each azimuth line → shadow (look-angle test) and layover (slant-range test).</li>
+          <li><b>Radiometry:</b> σ⁰(θ<sub>loc</sub>)·A<sub>facet</sub> splatted into GRD pixels ÷ ellipsoid pixel area → directly comparable with ESA σ⁰.</li>
+          <li><b>Comparison:</b> 5×5 multilook, sub-pixel co-registration, Pearson r, SSIM, RMSE; WorldCover breakdown.</li>
+        </ul>
+        <div class="pull">“Polynomials are piece-wise: blending them cost us 3 pixels.”<small>ESA's SRGR sets, applied valid-from → 0.016 px</small></div>
+        <figure><img src="{{fig}}/notebook/08b_radiometric_chain.png" alt="radiometry">
+          <figcaption><b>Figure 4:</b> Radiometric chain — local incidence, σ⁰ map, illuminated area, image, speckle, multilook.</figcaption></figure>
+      </div>
+    </div>
+
+    <!-- column 3 -->
+    <div class="col">
+      <div class="sec">
+        <h2><span class="n">4.</span> Results</h2>
+        <p class="kicker">Geometry nailed; land cover is the rest</p>
+        <figure><img src="{{fig}}/pipeline/p3_ascending_descending.png" alt="asc desc">
+          <figcaption><b>Figure 5:</b> Real vs simulated, ascending (looking east) and descending (looking west), with predicted layover (red) and shadow (blue).</figcaption></figure>
+        <table>
+          <tr><th>Backscatter model</th><th class="n">r</th><th class="n">SSIM</th><th class="n">RMSE dB</th></tr>
+          {{model_rows}}
+        </table>
+        <p style="margin-top:2mm">Geometry alone (constant σ⁰) already explains much of the image; the data-fitted law is cos<sup>{{nFit}}</sup>θ ≈ Lambert and transfers unchanged to the descending pass (r = {{rDesc}}). {{class_sentence}}</p>
+        <figure><img src="{{fig}}/pipeline/p6_landcover.png" alt="land cover">
+          <figcaption><b>Figure 6:</b> Residual (real − simulated) per WorldCover class. {{lc_sentence}}</figcaption></figure>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== BOTTOM ===================== -->
+  <div class="bottom">
+    <div>
+      <h2><span style="color:var(--accent)">5.</span> Conclusions</h2>
+      <ul>
+        <li>Range-Doppler geocoding with the annotated orbit reproduces ESA's grid to <b>{{geoDpixMax}} px</b>; simulated layover &amp; shadow sit where the real image is brightest and darkest.</li>
+        <li>DEM-only simulation predicts Sentinel-1 σ⁰ of Alpine terrain with <b>r = {{rAsc}} / {{rDesc}}</b> (asc / desc); the fitted cos<sup>{{nFit}}</sup> law transfers between geometries.</li>
+        <li>The remaining disagreement is <b>land cover</b> — buildings, water and vegetation structure that no DEM contains. Next: class-specific backscatter, double bounce, terrain flattening.</li>
+      </ul>
+    </div>
+    <div class="refs">
+      <h2>References</h2>
+      <p>Cumming &amp; Wong (2005) <i>Digital Processing of SAR Data</i>. Artech House.</p>
+      <p>Moreira et al. (2013) A tutorial on SAR. <i>IEEE GRSM</i> 1(1), 6–43.</p>
+      <p>Small (2011) Flattening gamma. <i>IEEE TGRS</i> 49(8), 3081–3093.</p>
+      <p>Muhleman (1964) Radar scattering from Venus and the Moon. <i>AJ</i> 69, 34–41.</p>
+      <p>Torres et al. (2012) GMES Sentinel-1 mission. <i>RSE</i> 120, 9–24.</p>
+    </div>
+    <div>
+      <h2>Acknowledgements</h2>
+      <div class="qr"><img src="{{qr}}" alt="QR code to the repository"><div style="font-size:12.5pt;line-height:1.25">Copernicus DEM © ESA/Airbus · Sentinel-1 &amp; WorldCover © ESA · data via Microsoft Planetary Computer.<br><span class="mono">{{repoShort}}</span></div></div>
+    </div>
+  </div>
+  <div class="footer"><span>“All models are wrong — some echo back.”</span><span>◉</span><span>Stay coherent · Mind the layover</span></div>
+</div>
+</body>
+</html>

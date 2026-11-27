@@ -1,0 +1,398 @@
+{
+  "aoi_bbox": [
+    11.25,
+    47.15,
+    11.55,
+    47.35
+  ],
+  "dem_shape": [
+    720,
+    1080
+  ],
+  "dem_height_range_m": [
+    551.5,
+    2789.354248046875
+  ],
+  "scenes": {
+    "ascending": {
+      "id": "S1C_IW_GRDH_1SDV_20250927T170622_20250927T170647_004313_0088D8",
+      "platform": "sentinel-1c",
+      "datetime": "2025-09-27 17:06:35.018983+00:00",
+      "pass": "Ascending",
+      "incidence_mid_deg": 38.9185058147273,
+      "window_shape": [
+        2622,
+        2780
+      ],
+      "pixel_spacing_m": [
+        10.0,
+        10.0
+      ],
+      "geoid_N_m": 49.599498748779226,
+      "orbit_fit_vel_rms_mm_s": 0.11150177956863999
+    },
+    "descending": {
+      "id": "S1C_IW_GRDH_1SDV_20250926T051754_20250926T051819_004291_008829",
+      "platform": "sentinel-1c",
+      "datetime": "2025-09-26 05:18:07.139231+00:00",
+      "pass": "Descending",
+      "incidence_mid_deg": 38.94778519337903,
+      "window_shape": [
+        2600,
+        2772
+      ],
+      "pixel_spacing_m": [
+        10.0,
+        10.0
+      ],
+      "geoid_N_m": 49.599498748779226,
+      "orbit_fit_vel_rms_mm_s": 0.11038854947278381
+    }
+  },
+  "fitted_model": {
+    "n": 1.9785379836585153,
+    "k": 0.3353834599893246,
+    "k_db": -4.744583591792199,
+    "fit_on": "ascending"
+  },
+  "E1_models_ascending": [
+    {
+      "model": "const",
+      "label": "Constant",
+      "pearson_r": 0.5338406173633995,
+      "spearman_rho": 0.739352907271691,
+      "bias_db": 0.17389888509306178,
+      "rmse_db": 3.835208540753073,
+      "rmse_db_bias_removed": 3.8312639857922486,
+      "n_pixels": 4871053,
+      "ssim": 0.3770233930841143,
+      "level_offset_db": -0.6467653923977394,
+      "shift_lines": -2.3,
+      "shift_pixels": 3.35
+    },
+    {
+      "model": "cos",
+      "label": "cos \u03b8",
+      "pearson_r": 0.6634639296169799,
+      "spearman_rho": 0.7671061087284045,
+      "bias_db": 0.3626725588582478,
+      "rmse_db": 3.7390447914163296,
+      "rmse_db_bias_removed": 3.7214143235158317,
+      "n_pixels": 4871394,
+      "ssim": 0.4669065413377852,
+      "level_offset_db": -8.26295851518476,
+      "shift_lines": -2.25,
+      "shift_pixels": 3.45
+    },
+    {
+      "model": "lambert",
+      "label": "cos\u00b2 \u03b8 (Lambert)",
+      "pearson_r": 0.7030700631033909,
+      "spearman_rho": 0.7622967094794469,
+      "bias_db": 0.6075009596026938,
+      "rmse_db": 4.48565440263722,
+      "rmse_db_bias_removed": 4.4443264961049485,
+      "n_pixels": 4872160,
+      "ssim": 0.5088679747676749,
+      "level_offset_db": -6.071782534968879,
+      "shift_lines": -2.25,
+      "shift_pixels": 3.5
+    },
+    {
+      "model": "muhleman",
+      "label": "Muhleman",
+      "pearson_r": 0.7341045469154244,
+      "spearman_rho": 0.7565789036651007,
+      "bias_db": -0.2043830769713732,
+      "rmse_db": 4.589022130065785,
+      "rmse_db_bias_removed": 4.584468526239572,
+      "n_pixels": 4871354,
+      "ssim": 0.493813120216472,
+      "level_offset_db": 7.591053018354352,
+      "shift_lines": -2.15,
+      "shift_pixels": 3.4
+    },
+    {
+      "model": "fitted",
+      "label": "Fitted cos^1.98 \u03b8",
+      "pearson_r": 0.7100092900938731,
+      "spearman_rho": 0.7608859917246434,
+      "bias_db": 0.5811571320495904,
+      "rmse_db": 4.329145779577064,
+      "rmse_db_bias_removed": 4.289960322508565,
+      "n_pixels": 4871964,
+      "ssim": 0.5080470469587864,
+      "level_offset_db": -1.3704660478052753,
+      "shift_lines": -2.25,
+      "shift_pixels": 3.5
+    }
+  ],
+  "E2_descending": {
+    "fitted_on_ascending": {
+      "pearson_r": 0.7216296985077526,
+      "spearman_rho": 0.7855549555583233,
+      "bias_db": 0.5798477058864213,
+      "rmse_db": 4.316932037705144,
+      "rmse_db_bias_removed": 4.277812391414956,
+      "n_pixels": 4902411,
+      "ssim": 0.48495620706461795,
+      "level_offset_db": -1.2717437740751718,
+      "shift_lines": 1.3,
+      "shift_pixels": 0.3
+    },
+    "muhleman": {
+      "pearson_r": 0.737170043511966,
+      "spearman_rho": 0.7861136492236717,
+      "bias_db": -0.14165856858618472,
+      "rmse_db": 4.367660211984947,
+      "rmse_db_bias_removed": 4.365362364947783,
+      "n_pixels": 4902620,
+      "ssim": 0.480415961240334,
+      "level_offset_db": 7.905235023549656,
+      "shift_lines": 1.25,
+      "shift_pixels": 0.25
+    },
+    "refit_on_descending": {
+      "n": 1.984225581871332,
+      "k": 0.3291993406568126
+    }
+  },
+  "E1_E2_summary": {
+    "ascending_fitted": {
+      "pearson_r": 0.7100092900938731,
+      "spearman_rho": 0.7608859917246434,
+      "bias_db": 0.5811571320495904,
+      "rmse_db": 4.329145779577064,
+      "rmse_db_bias_removed": 4.289960322508565,
+      "n_pixels": 4871964,
+      "ssim": 0.5080470469587864,
+      "level_offset_db": -1.3704660478052753,
+      "shift_lines": -2.25,
+      "shift_pixels": 3.5
+    },
+    "descending_fitted": {
+      "pearson_r": 0.7216296985077526,
+      "spearman_rho": 0.7855549555583233,
+      "bias_db": 0.5798477058864213,
+      "rmse_db": 4.316932037705144,
+      "rmse_db_bias_removed": 4.277812391414956,
+      "n_pixels": 4902411,
+      "ssim": 0.48495620706461795,
+      "level_offset_db": -1.2717437740751718,
+      "shift_lines": 1.3,
+      "shift_pixels": 0.3
+    }
+  },
+  "E3_geocoding_vs_esa": {
+    "ascending": {
+      "n_points": 210,
+      "dt_azimuth_ms_max": 0.0024734589100446373,
+      "dline_equiv_max": 0.0016514790757652853,
+      "dslant_range_m_max": 3.269617445766926e-05,
+      "dpixel_max": 0.01599301775058848,
+      "dpixel_rms": 0.0036000710853606745
+    },
+    "descending": {
+      "n_points": 210,
+      "dt_azimuth_ms_max": 0.0016470648319457197,
+      "dline_equiv_max": 0.0010989138462423136,
+      "dslant_range_m_max": 2.6402296498417854e-05,
+      "dpixel_max": 0.016391252087487374,
+      "dpixel_rms": 0.003890353921628992
+    }
+  },
+  "E3_real_sigma0_by_predicted_class": {
+    "ascending": {
+      "shadow": {
+        "n": 47061,
+        "median_db": -20.980594355194945,
+        "p25_db": -22.701290089013476,
+        "p75_db": -18.40975483436363
+      },
+      "layover": {
+        "n": 82113,
+        "median_db": -3.4516055373294314,
+        "p25_db": -6.680961233292557,
+        "p75_db": -0.16738886628574834
+      },
+      "foreshortened (area > 2x)": {
+        "n": 228299,
+        "median_db": -4.5152890517704165,
+        "p25_db": -6.136101518755775,
+        "p75_db": -2.7152146139225226
+      },
+      "other terrain": {
+        "n": 4524711,
+        "median_db": -10.814176889012558,
+        "p25_db": -13.262339299421033,
+        "p75_db": -8.377934592181433
+      }
+    },
+    "descending": {
+      "shadow": {
+        "n": 66333,
+        "median_db": -22.0452511045802,
+        "p25_db": -23.17061110610937,
+        "p75_db": -19.90046178502651
+      },
+      "layover": {
+        "n": 61497,
+        "median_db": -3.9114510642900124,
+        "p25_db": -6.711420362921842,
+        "p75_db": -1.0529757724909967
+      },
+      "foreshortened (area > 2x)": {
+        "n": 220493,
+        "median_db": -5.050289570126429,
+        "p25_db": -6.790219138254237,
+        "p75_db": -3.3971252716468356
+      },
+      "other terrain": {
+        "n": 4576111,
+        "median_db": -11.470104359339636,
+        "p25_db": -13.981328790806474,
+        "p75_db": -8.954255115940313
+      }
+    }
+  },
+  "E4_sensitivity": [
+    {
+      "case": "baseline (GLO-30, 3x oversampled, geoid)",
+      "pearson_r": 0.7100092900938731,
+      "spearman_rho": 0.7608859917246434,
+      "bias_db": 0.5811571320495904,
+      "rmse_db": 4.329145779577064,
+      "rmse_db_bias_removed": 4.289960322508565,
+      "n_pixels": 4871964,
+      "ssim": 0.5080470469587864,
+      "level_offset_db": -1.3704660478052753,
+      "shift_lines": -2.25,
+      "shift_pixels": 3.5,
+      "hole_fraction": 6.284710353918396e-05
+    },
+    {
+      "case": "no geoid correction (N = 0)",
+      "pearson_r": 0.7102862713335442,
+      "spearman_rho": 0.758718829889497,
+      "bias_db": 0.5809919253439854,
+      "rmse_db": 4.323616726784637,
+      "rmse_db_bias_removed": 4.284403106946987,
+      "n_pixels": 4870965,
+      "ssim": 0.5065443454097233,
+      "level_offset_db": -1.370482359152283,
+      "shift_lines": -2.25,
+      "shift_pixels": -2.3,
+      "hole_fraction": 6.0016646509048624e-05
+    },
+    {
+      "case": "no DEM oversampling",
+      "pearson_r": 0.7063638074650596,
+      "spearman_rho": 0.7501769446504737,
+      "bias_db": 0.5729365986208297,
+      "rmse_db": 4.340644933956596,
+      "rmse_db_bias_removed": 4.302666858663805,
+      "n_pixels": 4864930,
+      "ssim": 0.446015949257389,
+      "level_offset_db": -1.320324350082716,
+      "shift_lines": -2.2,
+      "shift_pixels": 3.5,
+      "hole_fraction": 0.45821296596421207
+    },
+    {
+      "case": "90 m DEM (GLO-30 aggregated 3x3)",
+      "pearson_r": 0.7138418385686941,
+      "spearman_rho": 0.7463825610292186,
+      "bias_db": 0.4222106834444259,
+      "rmse_db": 3.8165392591270892,
+      "rmse_db_bias_removed": 3.793113504134004,
+      "n_pixels": 4853510,
+      "ssim": 0.417728563451888,
+      "level_offset_db": -1.5912278250287564,
+      "shift_lines": -2.3,
+      "shift_pixels": 3.55,
+      "hole_fraction": 3.668091516437941e-06
+    }
+  ],
+  "E5_landcover_ascending": [
+    {
+      "code": 10,
+      "class": "Tree cover",
+      "color": "#006400",
+      "n": 412357,
+      "share_pct": 55.326094394227454,
+      "mean_residual_db": -0.14232605938126366,
+      "std_residual_db": 2.5238179271683987,
+      "pearson_r": 0.8556117023794453
+    },
+    {
+      "code": 30,
+      "class": "Grassland",
+      "color": "#ffff4c",
+      "n": 192806,
+      "share_pct": 25.868853822715312,
+      "mean_residual_db": -1.4350825023767564,
+      "std_residual_db": 3.2798131413120126,
+      "pearson_r": 0.769984495554847
+    },
+    {
+      "code": 40,
+      "class": "Cropland",
+      "color": "#f096ff",
+      "n": 28717,
+      "share_pct": 3.852970733415535,
+      "mean_residual_db": -2.004360180257257,
+      "std_residual_db": 2.5385271519005954,
+      "pearson_r": 0.22880102753837325
+    },
+    {
+      "code": 50,
+      "class": "Built-up",
+      "color": "#fa0000",
+      "n": 53431,
+      "share_pct": 7.168857445315508,
+      "mean_residual_db": 3.110413260695359,
+      "std_residual_db": 4.536958739843434,
+      "pearson_r": 0.22236487818932976
+    },
+    {
+      "code": 60,
+      "class": "Bare / sparse",
+      "color": "#b4b4b4",
+      "n": 42943,
+      "share_pct": 5.761678525091873,
+      "mean_residual_db": 3.175172092352011,
+      "std_residual_db": 4.290745646389491,
+      "pearson_r": 0.8217233288317386
+    },
+    {
+      "code": 70,
+      "class": "Snow & ice",
+      "color": "#f0f0f0",
+      "n": 2163,
+      "share_pct": 0.2902105267394854,
+      "mean_residual_db": 2.0881605447196696,
+      "std_residual_db": 2.9132340865557715,
+      "pearson_r": 0.8627928047416702
+    },
+    {
+      "code": 80,
+      "class": "Water",
+      "color": "#0064c8",
+      "n": 4041,
+      "share_pct": 0.5421824958641981,
+      "mean_residual_db": -3.7586932993144937,
+      "std_residual_db": 4.119543187933389,
+      "pearson_r": 0.30162835153514206
+    },
+    {
+      "code": 100,
+      "class": "Moss & lichen",
+      "color": "#fae6a0",
+      "n": 8863,
+      "share_pct": 1.189152056630633,
+      "mean_residual_db": 0.5072900983279187,
+      "std_residual_db": 3.2709918892480045,
+      "pearson_r": 0.8775316432005277
+    }
+  ]
+}

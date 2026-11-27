@@ -1,0 +1,690 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.3cm,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx,booktabs,float,tabularx,enumitem}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink]{cleveref}
+
+\graphicspath{{../figures/notebook/}{../figures/pipeline/}{generated/}}
+\input{generated/macros.tex}
+
+\definecolor{ink}{HTML}{1b2a3a}
+\titleformat{\section}{\Large\bfseries\color{ink}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\large\bfseries\color{ink}}{\thesubsection}{0.8em}{}
+\pagestyle{fancy}\fancyhf{}
+\lhead{\small DEM-based SAR simulation vs.\ Sentinel-1}\rhead{\small\thepage}
+\setlist{itemsep=2pt,topsep=4pt}
+\newcommand{\sigz}{\sigma^0}
+\newcommand{\figw}{\textwidth}
+
+\begin{document}
+% ------------------------------------------------------------------ title
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+{\color{ink}\rule{\textwidth}{1.2pt}}\\[0.6cm]
+{\Huge\bfseries DEM-based SAR Simulation\\[0.25cm] and Comparison with Real\\[0.25cm] Sentinel-1 Imagery\par}
+\vspace{0.4cm}
+{\Large From a single point target to a full Alpine scene\par}
+{\color{ink}\rule{\textwidth}{1.2pt}}\\[1.5cm]
+{\large [Author name]\\[0.2cm] [Affiliation]\par}
+\vspace{1cm}
+{\large Technical report \quad\textbullet\quad \today\par}
+\vfill
+\includegraphics[width=0.95\textwidth]{09b_real_vs_simulated.png}\\[0.2cm]
+{\small Real (left) and simulated (centre) Sentinel-1 $\sigz$ over Innsbruck, Austria.}
+\end{titlepage}
+
+% ------------------------------------------------------------------ abstract
+\begin{abstract}
+\noindent
+A Synthetic Aperture Radar (SAR) image of mountainous terrain is dominated by geometry:
+foreshortening, layover and shadow move and redistribute the backscattered energy long before
+the land cover has any say. This report builds a SAR simulator from first principles and uses it
+to predict real Sentinel-1 images from a digital elevation model (DEM).
+The physics is developed step by step with a raw-signal simulator --- a point target, a line of
+targets, the synthetic aperture of a moving satellite, distributed scatterers and speckle,
+periodic and real topography --- and an image-domain simulator is validated against it.
+The image-domain simulator is then driven by the Copernicus GLO-30 DEM, the precise orbit and
+timing annotation of two Sentinel-1 IW GRD scenes (ascending and descending) over Innsbruck,
+Austria, and several local-incidence-angle backscatter laws, including one fitted to the data.
+Our range-Doppler geocoding reproduces ESA's geolocation grid to \geoDpixMax{} pixels in range and
+\geoDtMax{} ms in azimuth time; the simulated images agree with the real ones with a Pearson
+correlation of \rAsc{} (ascending) and \rDesc{} (descending, using a model fitted only on the
+ascending scene), and SSIM of \ssimAsc{} and \ssimDesc{}. Residual offsets between image and
+simulation are 0.3--3.5 pixels (at most $\approx$35\,m) and reflect the absolute geolocation of
+the products rather than the simulator. Predicted shadow coincides with the darkest real pixels
+(median $\approx-21$\,dB, the noise floor) and predicted layover with the brightest.
+Land cover explains most of the remaining disagreement: built-up areas and bare rock are about
+3\,dB brighter than a DEM-only model predicts, water and cropland 2--4\,dB darker, while forest
+--- more than half of the area --- is reproduced without bias. All data are open and the
+complete code, a tutorial notebook and the experiment pipeline are published (Appendix~\ref{app:code}).
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ==================================================================
+\section{Introduction}
+\label{sec:intro}
+Spaceborne SAR sensors such as Sentinel-1 deliver weather- and daylight-independent images of
+the Earth every few days. In mountains, however, the side-looking range geometry of a SAR makes
+the images hard to interpret: slopes facing the radar collapse into thin bright lines, ridges are
+displaced towards the sensor and fold over the valleys in front of them (\emph{layover}), and
+slopes facing away may disappear entirely (\emph{shadow}). Simulating the image that a SAR
+\emph{should} record from a DEM is the classic way to understand, predict and correct these
+effects. Simulated images are used to geocode and terrain-correct SAR data
+\cite{meier1993,small2011}, to generate layover/shadow masks, to co-register images
+precisely, to plan acquisitions and to teach SAR.
+
+\paragraph{Objectives.} This work
+\begin{enumerate}
+\item explains, through a sequence of simulations of increasing complexity, how a SAR image is
+formed and how terrain alters it (a tutorial notebook, \cref{sec:walkthrough});
+\item implements a DEM-based simulator that works in the \emph{exact} geometry of a real
+Sentinel-1 GRD product, using its orbit state vectors and annotation (\cref{sec:method});
+\item quantifies how well the simulation predicts real images --- geometrically and
+radiometrically --- for two viewing geometries, several backscatter models and several processing
+choices, and identifies what a DEM alone cannot explain (\cref{sec:results}).
+\end{enumerate}
+
+\paragraph{Contributions.} (i) A transparent, fully open simulator in about 600 lines of Python;
+(ii) a validation of its geocoding against ESA's annotation to sub-centimetre slant range;
+(iii) an observation that the slant-to-ground-range polynomials of GRD products must be applied
+piece-wise (``valid-from'') rather than interpolated, which otherwise causes errors of several
+pixels; (iv) an empirical $\cos^n$ backscatter law for Alpine terrain ($n\approx2$) that transfers from
+the ascending to the descending pass; (v) a land-cover breakdown of the residuals.
+
+% ==================================================================
+\section{Background}
+\label{sec:background}
+
+\subsection{Range: pulse compression}
+A SAR transmits a linear-frequency-modulated pulse (chirp)
+$s(t)=\exp(j\pi K_r t^2)$, $|t|<T_p/2$, of bandwidth $B=K_rT_p$. A scatterer at slant range $R$
+returns $s(t-2R/c)\,\exp(-j4\pi R/\lambda)$. Correlating the echo with the transmitted
+replica (matched filtering) compresses the long pulse into a $\mathrm{sinc}$ peak whose
+$-3$\,dB width is the slant-range resolution
+\begin{equation}
+\rho_r = 0.886\,\frac{c}{2B}, \qquad \rho_g = \frac{\rho_r}{\sin\theta},
+\end{equation}
+where $\rho_g$ is the corresponding ground-range resolution at incidence angle $\theta$
+\cite{cumming2005,curlander1991}.
+
+\subsection{Azimuth: the synthetic aperture}
+Along the flight track (azimuth) a single pulse cannot separate targets: the real beam is
+kilometres wide. As the platform moves with speed $v$, the range to a target follows the
+hyperbola $R(\eta)=\sqrt{R_0^2+v^2\eta^2}$, giving a phase history
+$\exp(-j4\pi R(\eta)/\lambda)$ that is a chirp in Doppler with rate $2v^2/(\lambda R_0)$.
+Matched filtering in azimuth over the synthetic aperture $L_{sa}=\lambda R_0/L$ ($L$: antenna
+length) yields an azimuth resolution $\rho_{az}\approx L/2$, independent of range
+\cite{moreira2013}. We focus with time-domain back-projection, which is exact for arbitrary
+geometry: for every image point the range-compressed samples at its exact range are
+phase-corrected and summed over all pulses.
+
+\subsection{Speckle}
+A natural surface contains many scatterers per resolution cell. Their coherent sum has random
+phase, so the single-look intensity is exponentially distributed with standard deviation equal
+to its mean \cite{goodman1976}. Averaging $L$ independent looks gives a Gamma distribution with
+relative variance $1/L$ (\emph{multilooking}).
+
+\subsection{Geometric distortions}
+Because a SAR orders echoes by slant range, terrain height $h$ shifts a point towards the
+sensor by $h\cot\theta$ in ground range. Three regimes follow (\cref{fig:geom-profile}):
+\begin{itemize}
+\item \textbf{foreshortening}: slopes facing the radar with slope $\alpha<\theta$ are
+compressed into fewer range cells and appear bright;
+\item \textbf{layover}: if $\alpha>\theta$ the top of the slope is closer to the radar than
+its foot; the slope is imaged reversed and mixed with the terrain in front of it;
+\item \textbf{shadow}: slopes facing away with $\alpha>90^\circ-\theta$, and all terrain hidden
+behind them, return no echo.
+\end{itemize}
+
+\subsection{Radiometry}
+The radar cross-section per unit ground area, $\sigz$, depends on the surface material, its
+roughness and the \emph{local incidence angle} $\theta_{loc}$ between the beam and the surface
+normal. Simulators commonly use simple laws: $\cos\theta_{loc}$, $\cos^2\theta_{loc}$
+(Lambert) or Muhleman's law \cite{muhleman1964}
+\begin{equation}
+\sigz(\theta_{loc}) = 0.0133\,\frac{\cos\theta_{loc}}{(\sin\theta_{loc}+0.1\cos\theta_{loc})^3}.
+\end{equation}
+In addition, the \emph{area} that maps into one image pixel varies with the terrain. ESA
+calibrates GRD products to $\sigz$ referred to the ellipsoid pixel area; the brightness of a
+pixel therefore contains both effects, which is exactly why radiometric terrain flattening is
+needed for quantitative work \cite{small2011,ulander1996}.
+
+\subsection{SAR simulators}
+SAR simulators range from raw-signal simulators that generate echoes for every pulse
+\cite{franceschetti1992} through ray tracers that model multiple bounces in urban scenes
+\cite{auer2010,balz2009} to the image-domain DEM simulators used operationally for
+geocoding and terrain correction \cite{meier1993,small2011}. This work uses the first to
+explain the physics and validates the last against it.
+
+% ==================================================================
+\section{Study area and data}
+\label{sec:data}
+\begin{figure}[t]
+\centering\includegraphics[width=\figw]{09a_study_area_data.png}
+\caption{Study area and data. (a) Footprint of the ascending Sentinel-1 scene and the study area
+(red). (b) Copernicus GLO-30 DEM. (c) Calibrated real $\sigz$ in radar geometry.}
+\label{fig:study-area}
+\end{figure}
+
+The study area (11.25--11.55$^\circ$E, 47.15--47.35$^\circ$N, about $23\times22$\,km$^2$;
+\cref{fig:study-area}) is centred on Innsbruck, Tyrol. The east--west Inn valley floor
+($\approx$580\,m) with the city lies between the steep south face of the Nordkette
+(up to 2,300\,m) and the Patscherkofel and Stubai pre-Alps to the south; the deep Sill gorge
+(Wipptal) enters from the south. The DEM spans 552--2,789\,m. The terrain thus contains every
+distortion regime and a strong land-cover contrast between the urban valley floor, forests,
+alpine meadows and bare rock.
+
+\begin{table}[h]
+\centering\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+Dataset & Description \\ \midrule
+DEM & Copernicus GLO-30 (tile N47 E011), 1\,arcsec ($\approx$31\,m N $\times$ 21\,m E), EGM2008 heights; converted to WGS84 ellipsoidal heights with $N=\geoidN$\,m (EGM2008 via PROJ) \cite{copdem,pavlis2012}\\
+SAR (asc.) & \platAsc{} IW GRDH, VV, \dateAsc{}, \texttt{\sceneAsc}, mid-swath incidence \incAsc$^\circ$ \cite{torres2012}\\
+SAR (desc.) & \platDesc{} IW GRDH, VV, \dateDesc{}, \texttt{\sceneDesc}, mid-swath incidence \incDesc$^\circ$\\
+Annotation & orbit state vectors (10\,s), azimuth timing, slant-to-ground-range (SRGR) polynomials, geolocation grid, calibration LUT \cite{s1pd}\\
+Land cover & ESA WorldCover 2021, 10\,m \cite{worldcover}\\
+\bottomrule
+\end{tabularx}
+\caption{Data. All products are streamed anonymously from Microsoft Planetary Computer; only the
+GRD window covering the DEM ($\approx$2,600$\times$2,800 pixels) is read from the cloud-optimised
+GeoTIFF.}
+\label{tab:data}
+\end{table}
+
+% ==================================================================
+\section{Walkthrough: from a point to a mountain}
+\label{sec:walkthrough}
+This section summarises the tutorial notebook. A Sentinel-1-like C-band sensor
+($\lambda=5.55$\,cm, $B=50$\,MHz, $T_p=10\,\mu$s, $L=12.3$\,m, PRF $=1700$\,Hz) flies a
+straight line at 693\,km and looks right at $35^\circ$ (\cref{tab:sensor}).
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lr@{\hspace{1.5cm}}lr}\toprule
+wavelength & 5.55 cm & synthetic aperture $L_{sa}$ & 3.81 km\\
+orbit height & 693 km & processed aperture & $\pm0.6\,L_{sa}$\\
+slant range (centre) & 846.0 km & slant / ground-range resolution & 3.00 / 5.23 m\\
+range sampling & 60 MHz (2.50 m) & azimuth resolution $L/2$ & 6.15 m\\
+PRF / pulse spacing & 1700 Hz / 4.47 m & antenna & $12.3\times0.821$ m\\
+\bottomrule\end{tabular}
+\caption{Parameters of the walkthrough sensor.}\label{tab:sensor}
+\end{table}
+
+\subsection{A single point and a single pulse}
+\Cref{fig:point} follows one pulse from transmission to range compression. The 10\,$\mu$s chirp
+sweeps $\pm25$\,MHz; the echo of a point target at 846\,km is a 1.5\,km-long copy of it. After
+matched filtering the target is a sinc peak with a measured $-3$\,dB width of 2.66\,m, exactly
+$0.886\,c/2B$.
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{01_point_single_pulse.png}
+\caption{A single point target illuminated by one pulse: geometry, transmitted chirp, its
+frequency sweep and spectrum, the received echo, and the range-compressed signal with its
+$-3$\,dB width.}
+\label{fig:point}
+\end{figure}
+
+\subsection{A line of points}
+Five targets spread over 160\,m of ground range return overlapping echoes that cannot be
+separated in the raw signal (\cref{fig:line}); after range compression each becomes its own peak.
+Two equal targets are resolved down to about one resolution cell ($\approx$5.2\,m in ground
+range) and merge below it.
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{02_line_of_points.png}\\[2pt]
+\includegraphics[width=\figw]{02b_range_resolution.png}
+\caption{Top: five targets on a line, their overlapping echoes and the compressed range
+profile. Bottom: two targets at decreasing separation (multiples of $\rho_g$).}
+\label{fig:line}
+\end{figure}
+
+\subsection{A moving satellite}
+As the satellite flies past, the beam footprint sweeps over the targets (\cref{fig:moving}a)
+and each target traces a range hyperbola and a linear Doppler history (\cref{fig:moving}b).
+For a spaceborne geometry the range migration over the processed 4.6\,km aperture is only
+3.2\,m, about one range cell, so the range-compressed ``azimuth chirps'' are nearly straight.
+Back-projection focuses them into points with measured resolutions of 5.45\,m (azimuth) and
+4.65\,m (ground range), and peak side-lobe ratios of $-23.6$\,dB and $-13.3$\,dB
+(\cref{fig:irf}); the lower azimuth side-lobes come from the antenna pattern acting as a
+taper.
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{03a_moving_satellite_snapshots.png}\\[2pt]
+\includegraphics[width=\figw]{03b_signal_chain.png}
+\caption{(a) The beam footprint passing over three targets. (b) Range and Doppler history,
+azimuth phase history, raw data, range-compressed data and the focused image.}
+\label{fig:moving}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{03c_impulse_response.png}
+\caption{Impulse response of the simulated SAR and its cuts in azimuth and ground range.}
+\label{fig:irf}
+\end{figure}
+
+\subsection{A flat surface: speckle}
+A carpet of 4,941 scatterers with random complex amplitudes on a 2\,m grid produces raw data
+without any visible structure; the focused image is pure speckle (\cref{fig:flat}). The
+single-look intensity follows the exponential law, and multilooking over $15\times15$
+one-metre pixels ($\approx3\times3$ resolution cells) produces a Gamma distribution with an
+equivalent number of looks consistent with the number of independent cells averaged.
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{04_flat_surface_speckle.png}
+\caption{Distributed scatterers: random scatterer field, raw data, range-compressed data, the
+focused single-look image (speckle), the multilooked image and the intensity statistics.}
+\label{fig:flat}
+\end{figure}
+
+\subsection{A sine-wave surface and the image-domain simulator}
+With height $z=A\sin(2\pi y/\Lambda)$ ($A=12$\,m, $\Lambda=150$\,m) and identical reflectivity
+everywhere, the focused image still shows bright and dark bands (\cref{fig:sine}): slopes facing
+the radar are compressed into fewer range cells. The projected scatterer density, i.e.\ an
+\emph{image-domain} simulation that maps every scatterer to its zero-Doppler slant range,
+accumulates its power and blurs with the measured impulse response, reproduces the azimuth-averaged
+profile of the raw-signal simulation with $r=0.90$ --- the residual is speckle.
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{05_sine_surface.png}
+\caption{Sine-wave surface: geometry and local incidence angle, ground-to-slant range mapping,
+projected density, focused raw-signal simulation and comparison with the image-domain simulator.}
+\label{fig:sine}
+\end{figure}
+
+\subsection{A real DEM}
+\Cref{fig:dempatch} repeats the comparison on a $480\times480$\,m patch of the Copernicus DEM
+(relief $\approx$550\,m), automatically chosen as the steepest patch in the east--west
+(range) direction: about 15,000 scatterers and 1,100 pulses take $\approx$100\,s to simulate
+and focus, the image-domain simulation 30\,ms. After $9\times9$ multilooking both agree with
+$r=0.97$. The image-domain simulator is therefore used for all large scenes.
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{06_dem_patch_raw_vs_image_domain.png}
+\caption{Copernicus DEM patch: location, patch DEM, layover/shadow on the ground,
+range-compressed raw data and the focused raw-signal simulation versus the image-domain
+simulation.}
+\label{fig:dempatch}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{06b_dem_area_geometric_sim.png}
+\caption{Image-domain simulation of a $9\times9$\,km area (geometry only). The overlaid true DEM
+contours show how the mountains are displaced towards the sensor (west).}
+\label{fig:demarea}
+\end{figure}
+
+\subsection{Geometric complications}
+A synthetic mountain with a $55^\circ$ fore-slope and $65^\circ$ back-slope exhibits all
+regimes at a $35^\circ$ look angle (\cref{fig:geom-profile}): the fore-slope is in active
+layover and folds over the valley in front of it (passive layover), the back-slope and the plain
+behind it lie in shadow, and a gentle hill only shows foreshortening. Our shadow/layover
+algorithm orders facets by ground position along each azimuth line and flags (i) shadow where a
+nearer facet is seen at a larger look angle and (ii) layover where a nearer facet has a larger,
+or a farther facet a smaller, slant range. On the Innsbruck DEM (\cref{fig:geom-dem}) layover
+covers 18\,\% of the area at a $20^\circ$ look angle and decreases to 1\,\% at $50^\circ$, while
+shadow grows from 0 to 3.4\,\% --- the classic trade-off in choosing a SAR incidence angle for
+mountains.
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{07_geometric_distortions_profile.png}
+\caption{Geometric distortions along a synthetic profile: classification, the slant-range fold,
+and the energy recorded along the range line.}
+\label{fig:geom-profile}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{07b_geometric_distortions_dem.png}
+\caption{Layover and shadow on the Innsbruck DEM and their dependence on the look angle.}
+\label{fig:geom-dem}
+\end{figure}
+
+\subsection{Radiometry}
+\Cref{fig:radio} builds the simulated image in the order of the physics: local incidence angle,
+$\sigz(\theta_{loc})$ in map geometry, illuminated area per pixel in radar geometry, their
+product (the noise-free SAR image), speckle and multilooking. The models differ by more than
+10\,dB at steep local incidence (\cref{fig:models-curves}).
+\begin{figure}[H]
+\centering\includegraphics[width=0.85\textwidth]{08a_backscatter_models.png}
+\caption{Backscatter models and the distribution of local incidence angles in the
+$9\times9$\,km scene.}
+\label{fig:models-curves}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{08b_radiometric_chain.png}
+\caption{Radiometric simulation chain: local incidence angle, $\sigz$ map, illuminated area,
+noise-free image, single-look speckle, multilooked result.}
+\label{fig:radio}
+\end{figure}
+
+% ==================================================================
+\section{Method: simulation in real Sentinel-1 geometry}
+\label{sec:method}
+\subsection{Orbit and timing}
+The annotation of each GRD product contains ECEF state vectors every 10\,s. A degree-7
+polynomial per coordinate is fitted to the vectors within $\pm90$\,s of the scene; its derivative
+reproduces the annotated velocities to 0.1\,mm/s. Times are expressed relative to the first image
+line, so that the GRD line index is $t/\Delta t_{az}$.
+
+\subsection{Range-Doppler geocoding}
+For a ground point $\mathbf X$ the zero-Doppler time solves
+$f(t)=(\mathbf X-\mathbf S(t))\cdot\mathbf V(t)=0$ by Newton iteration with
+$f'(t)=-|\mathbf V|^2+(\mathbf X-\mathbf S)\cdot\mathbf A$; eight iterations reach machine
+precision. The slant range $R=|\mathbf X-\mathbf S(t)|$ is converted into GRD ground range with
+the annotated SRGR polynomial $g(R)=\sum_k c_k (R-R_0)^k$.
+
+\paragraph{A pitfall: SRGR polynomials are piece-wise.} The annotation lists one polynomial set
+per second of azimuth time. Interpolating linearly between consecutive sets --- a natural choice
+--- produced range errors of up to 3.3 pixels against ESA's geolocation grid; consecutive sets in
+fact differ by up to 19 pixels. Using each set from its time tag until the next
+(``valid-from'') reproduces the grid to 0.016 pixels. With this rule our geocoding agrees with
+ESA's annotation to \geoDpixMax{} pixels in range, \geoDtMax{} ms in azimuth time
+(\geoDlineMax{} lines) and \geoDRmax{} mm in slant range over all \nGrid{} grid points of both
+scenes (\cref{fig:geomval}a). ESA's tabulated \emph{line} numbers themselves are nominal and
+deviate by up to 0.2 lines from the zero-Doppler times listed next to them, which must be used
+for validation.
+
+\subsection{DEM facets}
+DEM heights are converted to ellipsoidal heights ($h=H+N$), the grid is oversampled three times
+by bilinear interpolation ($\approx10\times7$\,m facets, smaller than a GRD pixel) and converted
+to ECEF. Facet normals and true areas follow from the cross product of the grid tangent vectors;
+the local incidence angle is $\cos\theta_{loc}=-\hat{\mathbf u}\cdot\hat{\mathbf n}$ with
+$\hat{\mathbf u}$ the unit look vector.
+
+\subsection{Shadow and layover}
+For every facet we compute the GRD line (rounded, defining azimuth lines), its ground position
+along range (geocentric angle $\psi$ from the sensor), its off-nadir look angle $\alpha$ and its
+slant range $R$. After a lexicographic sort by (line, $\psi$), shadow is
+$\alpha<\max_{\psi'<\psi}\alpha$ and layover is $R<\max_{\psi'<\psi}R$ or
+$R>\min_{\psi'>\psi}R$. Grouped running maxima are computed in one vectorised pass by adding
+a group-dependent offset larger than the value range.
+
+\subsection{Rendering}
+Each lit facet contributes $\sigz(\theta_{loc})\,A_{facet}$ to the four GRD pixels around its
+fractional (line, pixel) position (bilinear splatting); the sum is divided by the ellipsoid
+pixel area $\Delta_{az}\Delta_{gr}=100$\,m$^2$. The result is thus in the same units as
+ESA-calibrated $\sigz$. Geometry is computed once per scene (7.0 million facets, $\approx$70\,s);
+each backscatter model is then rendered in about 2\,s.
+
+\subsection{Real data and comparison}
+Real DN are calibrated to $\sigz=\mathrm{DN}^2/A_\sigma^2$ with the bilinearly interpolated
+calibration LUT; thermal noise is not removed. Real and simulated images are multilooked
+$5\times5$ ($50\times50$\,m), converted to dB, and the simulation is co-registered to the real
+image by sub-pixel cross-correlation inside the largest fully valid interior box. A single
+constant level offset (median of real $-$ simulated in dB) calibrates the absolute level of the
+model. We report Pearson $r$ and Spearman $\rho$ on all valid pixels, SSIM \cite{wang2004} in the
+interior box, and the RMSE after removing the level offset. For map-geometry analyses the real
+image is back-geocoded to the DEM grid using the facet positions.
+
+% ==================================================================
+\section{Results}
+\label{sec:results}
+\subsection{Real versus simulated Sentinel-1}
+\Cref{fig:realsim} shows the core result for the ascending scene with the Muhleman model, as in
+the notebook: ridges, valleys, bright fore-slopes, layover bands and black shadows of the real
+image are reproduced at the right positions. (The notebook figures in this subsection use the
+Muhleman law; the pipeline experiments below use all models.) The offset found by
+co-registration is \shiftAscL{} lines and \shiftAscP{} pixels ($\approx$22\,m in azimuth,
+35\,m in range) for the ascending scene and \shiftDescL{} lines and \shiftDescP{} pixels for
+the descending scene; see \cref{sec:discussion} for its interpretation.
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{09b_real_vs_simulated.png}
+\caption{Ascending scene: real $\sigz$, simulation (Muhleman) and a checkerboard of both.}
+\label{fig:realsim}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{09c_analysis.png}
+\caption{(a) Predicted layover and shadow on the real image. (b) Pixel-by-pixel comparison;
+the vertical streak is the flat valley floor. (c) Real $\sigz$ versus local incidence angle with
+the three textbook models.}
+\label{fig:analysis}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{09d_map_geometry.png}
+\caption{The comparison in map geometry: DEM, real $\sigz$ back-geocoded to the DEM grid, and the
+simulation.}
+\label{fig:mapgeom}
+\end{figure}
+
+\subsection{E1: which backscatter law?}
+\Cref{tab:models,fig:models} compare five backscatter laws on the same geometry. The constant
+model, which contains only the illuminated-area term, already reaches $r\approx0.53$: a large
+part of the image structure is pure geometry. Laws that decrease with $\theta_{loc}$ improve
+the agreement substantially. No single law wins on every measure: Muhleman's law gives the
+highest correlation, the $\cos^2$ (Lambert) and fitted laws the highest structural similarity,
+and the $\cos$ law the lowest RMSE. Fitting $\sigz=k\cos^n\theta_{loc}$ to the median real
+backscatter in 2$^\circ$ bins (layover and shadow excluded) gives $n=\nFit$ and
+$10\log_{10}k=\kFitDb$\,dB (\cref{fig:fit}) --- i.e.\ the data select Lambert's law. The fit
+describes the \emph{median} well over 10--80$^\circ$, but at small local incidence (slopes facing
+the radar) the real backscatter rises more steeply, which Muhleman's law captures; these few
+very bright pixels weigh heavily in Pearson's $r$, which explains its advantage there. The
+interquartile spread of the real $\sigz$ at a given $\theta_{loc}$ ($\approx$5\,dB) shows that
+land cover, not the angular law, limits the agreement.
+\begin{table}[H]\centering\small
+\input{generated/tab_models.tex}
+\caption{E1 --- agreement between real and simulated ascending images for five backscatter
+models (5$\times$5 multilook, dB). ``Level offset'' is the constant added to the model.}
+\label{tab:models}
+\end{table}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{p1_models_images.png}
+\caption{E1 --- the real image and simulations with five backscatter models (north up).}
+\label{fig:models}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{p1b_models_metrics.png}
+\caption{E1 --- metrics per model.}
+\label{fig:modelsbar}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{p2_fitted_model.png}
+\caption{Real $\sigz$ versus local incidence angle in both scenes, with the $\cos^n$ law fitted
+on the ascending scene and the Muhleman law.}
+\label{fig:fit}
+\end{figure}
+
+\subsection{E2: a second viewing geometry}
+The descending scene looks west instead of east, so layover and shadow switch to the opposite
+slopes (\cref{fig:ascdesc}). Applying the model fitted on the ascending scene without any change
+gives $r=\rDesc$ and SSIM $=\ssimDesc$ (Muhleman: $r=\rDescMu$); a refit on the descending scene
+gives $n=\nRefitDesc$, close to the ascending value. The empirical law therefore transfers across
+viewing geometries --- it describes the terrain, not the acquisition.
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{p3_ascending_descending.png}
+\caption{E2 --- real and simulated images and predicted layover/shadow for the ascending
+(top, looking east) and descending (bottom, looking west) scenes, all north up.}
+\label{fig:ascdesc}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=0.85\textwidth]{p8_scatter.png}
+\caption{Pixel-by-pixel agreement for both scenes (fitted model).}
+\label{fig:scatter}
+\end{figure}
+
+\subsection{E3: geometric validation}
+Beyond the geocoding check, \cref{tab:classes,fig:geomval} test the predicted distortion classes
+against the real image. Pixels predicted to be in shadow are the darkest in the real image ---
+their median is close to the Sentinel-1 noise floor, since thermal noise was not removed ---
+while predicted layover and strongly foreshortened pixels are the brightest. The
+ordering is identical in both geometries.
+\begin{table}[H]\centering\small
+\input{generated/tab_classes.tex}
+\caption{E3 --- real $\sigz$ inside the simulated distortion classes.}
+\label{tab:classes}
+\end{table}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{p4_geometric_validation.png}
+\caption{E3 --- (a) geocoding residuals against ESA's geolocation grid; (b, c) real $\sigz$ in the
+predicted classes.}
+\label{fig:geomval}
+\end{figure}
+
+\subsection{E4: sensitivity to processing choices}
+\Cref{tab:sens,fig:sens} vary one choice at a time. Omitting the geoid correction
+($N=\geoidN$\,m) moves the simulation from \shiftAscP{} to \shiftNoGeoidP{} pixels in range,
+a change of 5.8 pixels (58\,m) --- exactly the expected ground-range displacement
+$N/\tan\theta\approx61$\,m of a height error $N$ at $\theta\approx39^\circ$. Co-registration
+absorbs it, so the correlation is unchanged, but an un-co-registered simulation (e.g.\ a
+layover/shadow mask) would be misplaced by six pixels. Without oversampling the DEM,
+\holesNoOver\,\% of the GRD pixels receive no facet at all (versus \holesBase\,\% with
+3$\times$ oversampling), a striped pattern on every slope facing away from the radar
+(\cref{fig:sens}c); after $5\times5$ multilooking the correlation barely changes (\rNoOver), but
+single-look products and masks would be unusable. Surprisingly, a 90\,m DEM (GLO-30 aggregated
+3$\times$3) gives the same correlation (\rDemNinety): at the 50\,m scale of the comparison the
+large landforms dominate, and the finer DEM only matters for full-resolution products.
+\begin{table}[H]\centering\small
+\input{generated/tab_sensitivity.tex}
+\caption{E4 --- sensitivity (ascending, fitted model). $\Delta$line/$\Delta$pixel: residual
+shift found by co-registration.}
+\label{tab:sens}
+\end{table}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{p5_sensitivity.png}
+\caption{E4 --- correlation, residual misregistration and the empty pixels without
+oversampling.}
+\label{fig:sens}
+\end{figure}
+
+\subsection{E5: what the DEM cannot know}
+Residuals grouped by ESA WorldCover class (\cref{tab:lc,fig:lc,fig:resmap}) show where a DEM-only
+simulation fails. Tree cover (55\,\% of the area) is reproduced without bias ($-0.1$\,dB) and
+with the highest correlation ($r=0.86$): the volume scattering of forest canopies is close to
+the smooth angular law fitted to the scene, which forest dominates. Built-up areas (+3.1\,dB)
+are brighter than predicted because double-bounce reflections between walls and the ground are
+absent from any facet model; bare rock and scree (+3.2\,dB) because they are rougher than the
+average surface. Water ($-3.8$\,dB), cropland ($-2.0$\,dB) and grassland ($-1.4$\,dB) are
+darker: smooth surfaces reflect specularly away from the radar. The low correlations of the
+built-up, cropland and water classes do not indicate a geometric failure --- these classes lie
+on the flat valley floor where the DEM predicts an almost constant value, so there is little
+terrain signal to correlate with. The residual maps make the city of Innsbruck and the river Inn
+stand out against a neutral mountain background.
+\begin{table}[H]\centering\small
+\input{generated/tab_landcover.tex}
+\caption{E5 --- residual (real $-$ simulated, dB) and correlation per land-cover class (ascending,
+map geometry, layover/shadow excluded).}
+\label{tab:lc}
+\end{table}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{p6_landcover.png}
+\caption{E5 --- WorldCover map, mean residual and correlation per class.}
+\label{fig:lc}
+\end{figure}
+\begin{figure}[H]
+\centering\includegraphics[width=\figw]{p7_residual_maps.png}
+\caption{E5 --- residual maps (real $-$ simulated) in map geometry for both scenes.}
+\label{fig:resmap}
+\end{figure}
+
+% ==================================================================
+\section{Discussion}
+\label{sec:discussion}
+\paragraph{Geometry is solved; radiometry is not.} The geocoding matches ESA's annotation to
+0.016 pixels, and the simulated distortions sit where the real image shows them. The offsets
+that co-registration still finds (35\,m in range and 22\,m in azimuth for the ascending scene,
+3\,m and 13\,m for the descending scene) therefore measure the discrepancy between the image
+content and ESA's own annotated geolocation, combined with DEM errors in steep terrain. Plausible
+contributions are the orbit used for these near-real-time products, the atmospheric path delay
+($\approx$2.5\,m slant) and solid-earth tides, none of which are modelled here, and the
+vertical accuracy of GLO-30 on steep slopes. Such offsets are exactly what simulation-based
+co-registration is used to remove in operational terrain correction. The radiometric part, in
+contrast, is limited by physics the DEM does not contain: land cover, moisture, snow, vegetation
+structure and man-made double bounce.
+
+\paragraph{Why a constant model already works.} The constant model's substantial correlation ($r\approx0.53$) shows
+that the illuminated-area term --- how much ground maps into each pixel --- is the largest
+single factor in mountainous SAR images. This is the motivation for radiometric terrain
+flattening \cite{small2011}: dividing by the simulated area image removes most of the
+terrain signature and leaves the land-cover signal.
+
+\paragraph{Limitations.}
+(i) Single-bounce, incoherent image-domain model (no multipath, no volume scattering).
+(ii) No thermal-noise removal: shadow is compared with the noise floor, not with zero.
+(iii) A single date per geometry; seasonal effects (snow, wet soil) are not explored.
+(iv) The DEM (2011--2015 TanDEM-X acquisitions) and the image (2025) differ in time.
+(v) The level offset is calibrated per experiment; absolute radiometric prediction would need
+a land-cover-dependent model.
+
+\paragraph{Applications.} The pipeline directly produces layover/shadow masks, a
+simulated reference for co-registration, and the illuminated-area image needed for terrain
+flattening; the walkthrough notebook is a self-contained teaching resource.
+
+% ==================================================================
+\section{Conclusions and future work}
+\label{sec:conclusions}
+\begin{itemize}
+\item A SAR simulator built from first principles --- validated from the impulse response of a
+point target up to a real DEM --- predicts real Sentinel-1 images of Alpine terrain with a
+correlation of \rAsc{} (ascending) and \rDesc{} (descending) in dB.
+\item Range-Doppler geocoding with the annotated orbit reproduces ESA's geolocation grid to
+\geoDpixMax{} pixels, provided the SRGR polynomials are applied piece-wise.
+\item Predicted shadow and layover coincide with the darkest and brightest real pixels in both
+viewing geometries.
+\item The backscatter law fitted to the data is $k\cos^{\nFit}\theta_{loc}$ --- essentially
+Lambert's law --- and transfers unchanged from the ascending to the descending pass; Muhleman's
+law correlates slightly better because it reproduces the brightest fore-slopes.
+\item The residuals are dominated by land cover: forest is reproduced without bias, built-up
+areas and bare rock are $\approx$3\,dB brighter and water $\approx$4\,dB darker than predicted.
+\item Image-to-simulation offsets of up to 35\,m reveal the absolute geolocation error of the
+products; simulation-based co-registration removes them.
+\end{itemize}
+Future work: land-cover-dependent backscatter (e.g.\ per WorldCover class), double-bounce for
+built-up areas, thermal-noise removal, multi-temporal stacks to separate seasonal effects, and
+using the simulation for radiometric terrain flattening and automatic co-registration.
+
+% ==================================================================
+\begin{thebibliography}{99}\small
+\bibitem{auer2010} S.~Auer, S.~Hinz, R.~Bamler, ``Ray-tracing simulation techniques for understanding high-resolution SAR images,'' \emph{IEEE Trans.\ Geosci.\ Remote Sens.}, 48(3), 1445--1456, 2010.
+\bibitem{balz2009} T.~Balz, U.~Stilla, ``Hybrid GPU-based single- and double-bounce SAR simulation,'' \emph{IEEE Trans.\ Geosci.\ Remote Sens.}, 47(10), 3519--3529, 2009.
+\bibitem{copdem} European Space Agency / Airbus, \emph{Copernicus DEM --- Global and European Digital Elevation Model (COP-DEM)}, product handbook, 2022.
+\bibitem{cumming2005} I.~G.~Cumming, F.~H.~Wong, \emph{Digital Processing of Synthetic Aperture Radar Data}, Artech House, 2005.
+\bibitem{curlander1991} J.~C.~Curlander, R.~N.~McDonough, \emph{Synthetic Aperture Radar: Systems and Signal Processing}, Wiley, 1991.
+\bibitem{franceschetti1992} G.~Franceschetti, M.~Migliaccio, D.~Riccio, G.~Schirinzi, ``SARAS: a synthetic aperture radar (SAR) raw signal simulator,'' \emph{IEEE Trans.\ Geosci.\ Remote Sens.}, 30(1), 110--123, 1992.
+\bibitem{goodman1976} J.~W.~Goodman, ``Some fundamental properties of speckle,'' \emph{J.\ Opt.\ Soc.\ Am.}, 66(11), 1145--1150, 1976.
+\bibitem{meier1993} E.~Meier, U.~Frei, D.~N\"uesch, ``Precise terrain corrected geocoded images,'' in G.~Schreier (ed.), \emph{SAR Geocoding: Data and Systems}, Wichmann, 173--185, 1993.
+\bibitem{moreira2013} A.~Moreira, P.~Prats-Iraola, M.~Younis, G.~Krieger, I.~Hajnsek, K.~P.~Papathanassiou, ``A tutorial on synthetic aperture radar,'' \emph{IEEE Geosci.\ Remote Sens.\ Mag.}, 1(1), 6--43, 2013.
+\bibitem{muhleman1964} D.~O.~Muhleman, ``Radar scattering from Venus and the Moon,'' \emph{Astron.\ J.}, 69, 34--41, 1964.
+\bibitem{pavlis2012} N.~K.~Pavlis, S.~A.~Holmes, S.~C.~Kenyon, J.~K.~Factor, ``The development and evaluation of the Earth Gravitational Model 2008 (EGM2008),'' \emph{J.\ Geophys.\ Res.}, 117, B04406, 2012.
+\bibitem{s1pd} European Space Agency, \emph{Sentinel-1 Product Definition}, S1-RS-MDA-52-7440.
+\bibitem{small2011} D.~Small, ``Flattening gamma: radiometric terrain correction for SAR imagery,'' \emph{IEEE Trans.\ Geosci.\ Remote Sens.}, 49(8), 3081--3093, 2011.
+\bibitem{torres2012} R.~Torres et al., ``GMES Sentinel-1 mission,'' \emph{Remote Sens.\ Environ.}, 120, 9--24, 2012.
+\bibitem{ulander1996} L.~M.~H.~Ulander, ``Radiometric slope correction of synthetic-aperture radar images,'' \emph{IEEE Trans.\ Geosci.\ Remote Sens.}, 34(5), 1115--1122, 1996.
+\bibitem{wang2004} Z.~Wang, A.~C.~Bovik, H.~R.~Sheikh, E.~P.~Simoncelli, ``Image quality assessment: from error visibility to structural similarity,'' \emph{IEEE Trans.\ Image Process.}, 13(4), 600--612, 2004.
+\bibitem{worldcover} D.~Zanaga et al., \emph{ESA WorldCover 10 m 2021 v200}, Zenodo, 2022, doi:10.5281/zenodo.7254221.
+\end{thebibliography}
+
+% ==================================================================
+\appendix
+\section{Code and data availability}
+\label{app:code}
+\begin{minipage}{0.68\textwidth}
+The complete code --- the \texttt{sarsim} package, the experiment pipeline
+\texttt{run\_all.py}, the unit tests, the tutorial notebook, this report and the poster --- is
+available at\\[4pt]
+\url{\repoURL}\\[4pt]
+The environment is pinned with \texttt{uv} (Python 3.12). To reproduce every number and figure:
+\begin{verbatim}
+uv sync
+uv run pytest -q tests
+uv run python run_all.py
+uv run python report/make_tables.py
+\end{verbatim}
+All input data are downloaded automatically from Microsoft Planetary Computer without an
+account and cached in \texttt{data/}.
+\end{minipage}\hfill
+\begin{minipage}{0.28\textwidth}\centering
+\includegraphics[width=\textwidth]{qr_repo.png}\\
+\small scan for the code
+\end{minipage}
+
+\section{Repository structure}
+\begin{tabularx}{\textwidth}{lX}\toprule
+\texttt{sarsim/s1.py} & annotation parser, orbit fit, zero-Doppler geocoding, SRGR, calibration\\
+\texttt{sarsim/rdsim.py} & facet geometry, shadow/layover, backscatter models, rendering\\
+\texttt{sarsim/compare.py} & multilook, co-registration, metrics, back-geocoding\\
+\texttt{sarsim/data.py} & cached access to GLO-30, Sentinel-1 GRD windows and WorldCover\\
+\texttt{run\_all.py} & experiments E1--E5, figures \texttt{figures/pipeline/}, results \texttt{results/}\\
+\texttt{notebooks/} & tutorial notebook (\texttt{.ipynb} with outputs, jupytext \texttt{.py} source)\\
+\texttt{tests/} & unit tests\\
+\texttt{report/}, \texttt{poster/} & this report and the poster\\
+\bottomrule\end{tabularx}
+\end{document}

@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+data/
+report/build/
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.synctex.gz
+
+# drafts / local renders
+report/draft.*
+poster/poster_draft.html
+report/*.fls
+report/*.fdb_latexmk
