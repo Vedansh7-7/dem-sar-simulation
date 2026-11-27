@@ -116,14 +116,15 @@ def _sibling(href: str, rel_from: str, rel_to: str) -> str:
     return base.replace(rel_from, rel_to) + "?" + tok
 
 
-def get_s1(item, dem: dict, pol: str = "vv", margin: int = 60) -> Path:
+def get_s1(item, dem: dict, pol: str = "vv", margin: int = 60, key: str | None = None) -> Path:
     """Download annotation + calibration XML and the GRD window covering the DEM.
 
     Planetary Computer renames SAFE files; the product annotation lives next to the
     calibration folder as ``annotation/iw-<pol>.xml`` (the 'schema-product' asset is
     actually the RFI report for recent products).
+    ``key`` separates the cached window of a different DEM area from the default one.
     """
-    d = DATA / item.id
+    d = DATA / (item.id if key is None else f"{item.id}_{key}")
     d.mkdir(parents=True, exist_ok=True)
     cal_href = item.assets[f"schema-calibration-{pol}"].href
     files = {
