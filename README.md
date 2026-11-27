@@ -32,6 +32,30 @@ uv run python run_all.py                  # downloads ~60 MB on first run, ~15 m
 uv run jupyter lab notebooks/             # the walkthrough
 ```
 
+## GUI
+
+```bash
+uv run streamlit run app/streamlit_app.py
+```
+
+Opens a browser app (wide layout, inputs in the sidebar, single *Run simulation* button):
+
+* **Terrain:** a preset, a bounding box (Copernicus GLO-30 is downloaded and cached), or an
+  uploaded DEM GeoTIFF in any projection. Large areas are downsampled to stay below about
+  4 million facets, and the app says so.
+* **Geometry:** *Generic Sentinel-1-like* (offline, anywhere: pass, look angle, heading; flat
+  Earth, straight orbit) or *Real Sentinel-1* (finds a covering IW GRD scene for a date range,
+  simulates in its exact geometry and compares with the real image: r, SSIM, RMSE, offset).
+* **Backscatter:** fitted cos^1.98 law (default), Muhleman, Lambert, cosine or constant, with
+  optional speckle and multilook.
+* **Outputs:** *Overview* (hillshade, area statistics, layover and shadow percentages, run time)
+  and *Results* (sigma0 in radar and map geometry, layover and shadow overlay, local incidence
+  map and histogram, sigma0 versus local incidence). The ZIP download holds georeferenced
+  GeoTIFFs, the radar-geometry image (GeoTIFF and NPY) and `metadata.json`.
+
+The info button in the top-right corner explains the method. Core logic lives in
+`sarsim/pipeline.py` and `sarsim/generic.py`; `tests/test_app_core.py` runs it headless.
+
 To change the study area or dates, edit `sarsim/__init__.py` (`AOI_BBOX`, `S1_DATES`).
 
 ## Method in one paragraph
