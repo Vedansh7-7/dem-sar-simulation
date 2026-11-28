@@ -24,7 +24,7 @@ import streamlit as st  # noqa: E402
 from matplotlib.colors import LogNorm  # noqa: E402
 from matplotlib.patches import Patch  # noqa: E402
 
-from sarsim import compare, rdsim  # noqa: E402
+from sarsim import compare, rdsim, viz3d  # noqa: E402
 from sarsim import pipeline as P  # noqa: E402
 from sarsim.generic import DEFAULT_HEADING, H_S1, generic_geometry  # noqa: E402
 
@@ -316,11 +316,15 @@ def get_dem():
     return cached_dem_bbox(tuple(float(v) for v in bbox)), "bbox_" + "_".join(f"{v:.4f}" for v in bbox)
 
 
+# fixed slot for the run status, so the tabs below keep their position (and the selected tab)
+# on reruns triggered by widgets inside the tabs
+status_slot = st.container()
+
 if run:
     st.session_state.pop("res", None)
     t_start = time.time()
     try:
-        with st.status("Running simulation", expanded=True) as status:
+        with status_slot, st.status("Running simulation", expanded=True) as status:
             bar = st.progress(0.0)
 
             def say(msg, frac):
@@ -366,17 +370,19 @@ if run:
             st.session_state["zip"] = P.build_zip(res, inputs)
             status.update(label=f"Finished in {res['runtime_s']:.1f} s", state="complete", expanded=False)
     except LookupError as exc:
-        st.warning(str(exc))
+        status_slot.warning(str(exc))
     except Exception as exc:  # noqa: BLE001
-        st.error(f"{type(exc).__name__}: {exc}")
+        status_slot.error(f"{type(exc).__name__}: {exc}")
+elif "res" in st.session_state:
+    status_slot.success(f"Finished in {st.session_state['res']['runtime_s']:.1f} s", icon=":material/check:")
 
 res = st.session_state.get("res")
 
 # =========================================================================== tabs
-tab_over, tab_res = st.tabs(["Overview", "Results"])
+tab_over, tab_res, tab_3d = st.tabs(["Overview", "Results", "3D view"])
 
 if res is None:
-    for t in (tab_over, tab_res):
+    for t in (tab_over, tab_res, tab_3d):
         with t:
             st.markdown('<div class="empty">Choose terrain and geometry in the sidebar, then press '
                         '<b>Run simulation</b>.<br>The Innsbruck presets work offline with the cached DEM.</div>',
@@ -485,3 +491,14 @@ with tab_res:
             show(fig_curve(res))
         else:
             st.caption("Metrics use the noise-free simulation. Radar images are shown roughly north up.")
+
+with tab_3d:
+    keys = viz3d.available_layers(res)
+    c1, c2, c3 = st.columns([3, 2, 1], vertical_alignment="bottom")
+    layer = c1.selectbox("Draped layer", keys, format_func=lambda k: viz3d.LAYERS[k], key="layer3d")
+    exag = c2.slider("Vertical exaggeration", 1.0, 4.0, 1.5, 0.25, key="exag3d")
+    radar = c3.toggle("Radar", value=True, key="radar3d", help="Show the radar look direction")
+    st.plotly_chart(viz3d.terrain_figure(res, layer, exag, show_radar=radar), width="stretch",
+                    config={"displaylogo": False})
+    st.caption("Drag to rotate, scroll to zoom. The layer is draped in map geometry over the DEM used for "
+               "the simulation; the orange cone shows where the radar looks from.")
